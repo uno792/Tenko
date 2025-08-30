@@ -21,6 +21,10 @@ export function NavBar() {
       <Link to="/loginpage">
         <button>Log in</button>
       </Link>
+      {/* New Practice Page link */}
+      <Link to="/practice">
+        <button>Practice</button>
+      </Link>
     </div>
   );
 }

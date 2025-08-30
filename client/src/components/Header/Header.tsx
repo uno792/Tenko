@@ -37,6 +37,8 @@ export default function Header() {
       <nav className={`${styles.links} ${open ? styles.open : ""}`}>
         <ComicButton text="Home" to="/" />
         <ComicButton text="Find Tutor" to="/findtutor" />
+        {/* New Practice link */}
+        <ComicButton text="Practice" to="/practice" />
       </nav>
     </header>
   );
