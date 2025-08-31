@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
     },
     { to: "/calendar", label: "Calendar", icon: <Calendar size={18} /> },
     { to: "/practice", label: "Notes & Papers", icon: <BookOpen size={18} /> },
-    { to: "/tutors", label: "Tutors", icon: <Users size={18} /> },
+    { to: "/findtutor", label: "Tutors", icon: <Users size={18} /> },
     {
       to: "/assistant",
       label: "AI Assistant",
