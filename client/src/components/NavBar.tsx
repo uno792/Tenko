@@ -17,19 +17,19 @@ const Navbar: React.FC = () => {
   const links = [
     { to: "/", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
     {
-      to: "/applications",
+      to: "/",
       label: "University Applications",
       icon: <FileText size={18} />,
     },
-    { to: "/calendar", label: "Calendar", icon: <Calendar size={18} /> },
+    { to: "/", label: "Calendar", icon: <Calendar size={18} /> },
     { to: "/practice", label: "Notes & Papers", icon: <BookOpen size={18} /> },
     { to: "/findtutor", label: "Tutors", icon: <Users size={18} /> },
     {
-      to: "/assistant",
+      to: "/",
       label: "AI Assistant",
       icon: <MessageSquare size={18} />,
     },
-    { to: "/events", label: "Events", icon: <Star size={18} /> },
+    { to: "/", label: "Events", icon: <Star size={18} /> },
   ];
 
   return (
