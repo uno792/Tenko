@@ -8,12 +8,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Routes that use the Layout (with NavBar, Header, etc.) */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/findtutor" element={<FindTutor />} />
           <Route path="/practice" element={<PracticePage />} />{" "}
-          {/* <-- add this */}
         </Route>
       </Routes>
     </Router>

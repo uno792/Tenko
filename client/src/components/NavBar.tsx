@@ -1,30 +1,56 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./Navbar.module.css";
+import {
+  LayoutDashboard,
+  FileText,
+  Calendar,
+  BookOpen,
+  Users,
+  MessageSquare,
+  Star,
+} from "lucide-react";
 
-export function NavBar() {
+const Navbar: React.FC = () => {
+  const location = useLocation();
+
+  const links = [
+    { to: "/", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+    {
+      to: "/applications",
+      label: "University Applications",
+      icon: <FileText size={18} />,
+    },
+    { to: "/calendar", label: "Calendar", icon: <Calendar size={18} /> },
+    { to: "/practice", label: "Notes & Papers", icon: <BookOpen size={18} /> },
+    { to: "/tutors", label: "Tutors", icon: <Users size={18} /> },
+    {
+      to: "/assistant",
+      label: "AI Assistant",
+      icon: <MessageSquare size={18} />,
+    },
+    { to: "/events", label: "Events", icon: <Star size={18} /> },
+  ];
+
   return (
-    <div>
-      <Link to="/">
-        <button>Home</button>
-      </Link>
-      <Link to="/house">
-        <button>House</button>
-      </Link>
-      <Link to="/ball">
-        <button>Ball</button>
-      </Link>
-      <Link to="/doodlehome">
-        <button>Doodle Home</button>
-      </Link>
-      <Link to="/signuppage">
-        <button>Sign up</button>
-      </Link>
-      <Link to="/loginpage">
-        <button>Log in</button>
-      </Link>
-      {/* New Practice Page link */}
-      <Link to="/practice">
-        <button>Practice</button>
-      </Link>
-    </div>
+    <nav className={styles.navbar}>
+      <ul className={styles.menu}>
+        {links.map((link) => (
+          <li
+            key={link.to}
+            className={`${styles.menuItem} ${
+              location.pathname === link.to ? styles.active : ""
+            }`}
+          >
+            <Link to={link.to} className={styles.link}>
+              {link.icon}
+              <span>{link.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
-}
+};
+
+export default Navbar;

@@ -1,45 +1,26 @@
+import React from "react";
 import styles from "./Header.module.css";
-//import { useUser } from "../../../Users/UserContext";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import logo from "../../assets/logo.png";
+import { Bell, Plus } from "lucide-react";
 
-export default function Header() {
-  //const u = useUser();
-  //const username = u?.username || "Guest";
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-
-  // Helper component for comic buttons
-  const ComicButton = ({ text, to }: { text: string; to: string }) => (
-    <button className={styles.comicBrutalButton} onClick={() => navigate(to)}>
-      <div className={styles.buttonInner}>
-        <span className={styles.buttonText}>{text}</span>
-        <div className={styles.halftoneOverlay}></div>
-        <div className={styles.inkSplatter}></div>
-      </div>
-      <div className={styles.buttonShadow}></div>
-      <div className={styles.buttonFrame}></div>
-    </button>
-  );
-
+const Header: React.FC = () => {
   return (
-    <header className={styles.nav}>
-      <button
-        className={styles.hamburger}
-        onClick={() => setOpen(!open)}
-        aria-label="Toggle navigation"
-      >
-        <span />
-        <span />
-        <span />
-      </button>
-
-      <nav className={`${styles.links} ${open ? styles.open : ""}`}>
-        <ComicButton text="Home" to="/" />
-        <ComicButton text="Find Tutor" to="/findtutor" />
-        {/* New Practice link */}
-        <ComicButton text="Practice" to="/practice" />
-      </nav>
+    <header className={styles.header}>
+      <div className={styles.left}>
+        <img src={logo} alt="Tenko Logo" className={styles.logo} />
+        <h1 className={styles.brand}>TENKO</h1>
+      </div>
+      <div className={styles.right}>
+        <div className={styles.iconWrapper}>
+          <Bell className={styles.icon} />
+          <span className={styles.notificationBadge}>2</span>
+        </div>
+        <button className={styles.addButton}>
+          <Plus size={20} />
+        </button>
+      </div>
     </header>
   );
-}
+};
+
+export default Header;
