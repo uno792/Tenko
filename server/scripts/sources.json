@@ -1,0 +1,21 @@
+[
+    { "name": "Devpost - All Hackathons", "url": "https://devpost.com/hackathons?sort_by=recently-added", "kind": "Hackathon" },
+    { "name": "MLH Season Events", "url": "https://mlh.io/seasons/2025/events", "kind": "Hackathon" },
+    { "name": "Zindi - Competitions", "url": "https://zindi.africa/competitions", "kind": "Hackathon" },
+  
+    { "name": "Eventbrite - Hackathons in South Africa", "url": "https://www.eventbrite.com/d/south-africa/hackathon/", "kind": "Hackathon" },
+  
+    { "name": "Wits Career Fairs (CCDU)", "url": "https://www.wits.ac.za/ccdu/workshops-presentations-training--events/graduate-recruitment-programme/career-fairs/", "kind": "CareerFair" },
+  
+    { "name": "ZA Bursaries", "url": "https://www.zabursaries.co.za/", "kind": "Bursary" },
+    { "name": "AllBursaries.co.za", "url": "https://allbursaries.co.za/", "kind": "Bursary" },
+    { "name": "StudentRoom - SA Bursaries", "url": "https://www.studentroom.co.za/category/bursaries/", "kind": "Bursary" },
+    { "name": "Puff and Pass - Bursaries", "url": "https://www.puffandpass.co.za/category/bursaries", "kind": "Bursary" },
+  
+    { "name": "Graduates24 - Internships", "url": "https://www.graduates24.com/internshipprogrammes", "kind": "Other" },
+  
+    { "name": "SAGEA - Events", "url": "https://sagea.org.za/events/", "kind": "CareerFair" },
+  
+    { "name": "Western Cape Gov - Bursaries/Internships", "url": "https://www.westerncape.gov.za/bursaries-internships-and-learnerships", "kind": "Other" }
+  ]
+  

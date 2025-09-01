@@ -2,6 +2,11 @@ import supabase from "./supabaseClient";
 import express from "express";
 import type { Request, Response } from 'express';
 import cors from "cors";
+import { readFile } from "node:fs/promises";
+import { fetchText } from "./scripts/lib/fetchers";
+import { llmExtract } from "./scripts/lib/llm";
+import { upsertEvents } from "./scripts/lib/supabase";
+import path from "node:path"; 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -214,9 +219,37 @@ router.patch("/applications/:id", async (req, res) => {
   }
 });
 
+router.post("/ingest/events", async (req, res) => {
+  try {
+    const token = req.headers["x-cron-secret"];
+    if (process.env.CRON_SECRET && token !== process.env.CRON_SECRET) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // __dirname here is .../server
+    const sourcesPath = path.resolve(__dirname, "scripts", "sources.json");
+    const raw = await readFile(sourcesPath, "utf8");
+    const sources: Array<{ name:string; url:string; kind:"Hackathon"|"Bursary"|"CareerFair"|"Other" }> =
+      JSON.parse(raw);
+
+    let total = 0;
+    for (const s of sources) {
+      const text = await fetchText(s.url);
+      const items = await llmExtract(text, s.kind);
+      const { inserted } = await upsertEvents(items as any);
+      total += inserted;
+    }
+    res.json({ ok: true, inserted: total });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: e?.message || "failed" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
 
 
 export default router;

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch './' --ext ts --exec ts-node server.ts",
     "start": "ts-node server.ts",
+    "ingest:events": "ts-node scripts/ingest_events.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
