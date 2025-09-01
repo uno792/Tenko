@@ -1,0 +1,39 @@
+:root{
+    --maroon:#800020;
+    --maroon-2:#8f0027;
+    --stroke:#b88c96;
+    --card:#fff;
+    --bg:#fffafc;
+    --ink:#1a1a1a;
+    --muted:#6c6c6c;
+    --radius:18px;
+    --shadow:0 8px 24px rgba(128,0,32,0.08);
+  }
+  .wrap{padding:28px;background:var(--bg);color:var(--ink);}
+  .header{margin-bottom:18px;border-bottom:2px solid var(--maroon);padding-bottom:16px;}
+  .title{font-size:28px;font-weight:800;margin:0;}
+  .subtitle{color:var(--muted);margin:6px 0 0;}
+  .grid{display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:20px;}
+  @media (max-width:1200px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--card);border:2px solid var(--stroke);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .cardHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .cardTitle{font-size:18px;margin:0;font-weight:800;}
+  .primaryBtn{background:var(--maroon);color:#fff;border:none;border-radius:14px;padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 #5c0017;transition:transform .05s;}
+  .primaryBtn:active{transform:translateY(1px);box-shadow:0 2px 0 #5c0017;}
+  .plus{font-weight:900;margin-right:6px;font-size:16px;line-height:0;}
+  link-btn{}
+  .linkBtn{background:transparent;border:none;color:var(--maroon);font-weight:700;cursor:pointer;}
+  muted{}
+  .muted{color:var(--muted);}
+  skeleton-list{}
+  .skeletonList{display:grid;gap:10px;}
+  .skeleton{height:64px;border-radius:14px;background:linear-gradient(90deg,#eee,#f7e6ea,#eee);animation:sh 1.2s infinite;}
+  @keyframes sh{0%{background-position:-200px 0}100%{background-position:200px 0}}
+  .empty{border:1.5px dashed var(--stroke);border-radius:14px;padding:16px;text-align:center;color:var(--muted);}
+  .list{display:flex;flex-direction:column;gap:12px;margin-top:8px;}
+  .deadlines{display:flex;flex-direction:column;gap:12px;margin-top:8px;}
+  .deadlineItem{display:flex;gap:10px;align-items:center;border:1.5px solid var(--stroke);border-radius:12px;padding:10px;}
+  .deadlineName{font-weight:700;}
+  .deadlineDate{color:var(--muted);}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--maroon);}
+  

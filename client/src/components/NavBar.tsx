@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
   const links = [
     { to: "/", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
     {
-      to: "/",
+      to: "/applications",
       label: "University Applications",
       icon: <FileText size={18} />,
     },
