@@ -1,0 +1,24 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #800020;
+  margin-bottom: 2rem;
+}
+
+.sectionHeading {
+  font-size: 1.5rem;
+  margin: 2rem 0 1rem;
+  color: #800020;
+}

@@ -17,6 +17,11 @@ const Navbar: React.FC = () => {
   const links = [
     { to: "/", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
     {
+      to: "/ai-assistant",
+      label: "AI Assistant",
+      icon: <MessageSquare size={18} />,
+    },
+    {
       to: "/applications",
       label: "University Applications",
       icon: <FileText size={18} />,
@@ -28,11 +33,7 @@ const Navbar: React.FC = () => {
       icon: <BookOpen size={18} />,
     },
     { to: "/findtutor", label: "Tutors", icon: <Users size={18} /> },
-    {
-      to: "/practice",
-      label: "AI Assistant",
-      icon: <MessageSquare size={18} />,
-    },
+
     { to: "/events", label: "Events", icon: <Star size={18} /> },
   ];
 
