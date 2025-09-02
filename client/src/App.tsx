@@ -6,6 +6,7 @@ import { FindTutor } from "./pages/findtutor";
 import PracticePage from "./pages/practice";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import NotesPage from "./pages/notes"; // <-- new import
+import EventPage from "./pages/EventsPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/applications" element={<ApplicationsPage />} />
           <Route path="/notes" element={<NotesPage />} /> {/* new route */}
+          <Route path="/events" element={<EventPage />} />
         </Route>
       </Routes>
     </Router>
