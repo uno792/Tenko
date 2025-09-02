@@ -6,6 +6,7 @@ import { FindTutor } from "./pages/findtutor";
 import PracticePage from "./pages/practice";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import NotesPage from "./pages/notes"; // <-- new import
+import AIAssistantPage from "./pages/AIAssistantPage";
 import EventPage from "./pages/EventsPage";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/findtutor" element={<FindTutor />} />
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/applications" element={<ApplicationsPage />} />
+          <Route path="/ai-assistant" element={<AIAssistantPage />} />
           <Route path="/notes" element={<NotesPage />} /> {/* new route */}
           <Route path="/events" element={<EventPage />} />
         </Route>

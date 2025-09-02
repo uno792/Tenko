@@ -1,0 +1,97 @@
+.container {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: #800020;
+}
+
+.subheading {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.chatbox {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fafafa;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: "Montserrat", sans-serif;
+}
+
+.sendBtn {
+  padding: 0 1rem;
+  background: #800020;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.loading {
+  font-style: italic;
+  color: #888;
+}
+
+.chatControls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.clearBtn {
+  background: #eee;
+  border: none;
+  color: #333;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clearBtn:hover {
+  background: #ddd;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clearBtn {
+  background: #800000; /* maroon */
+  border: none;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clearBtn:hover {
+  background: #a52a2a; /* lighter maroon on hover */
+}

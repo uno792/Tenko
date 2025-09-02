@@ -1,7 +1,5 @@
 /* src/pages/practice.module.css */
 .container {
-  margin-top: var(--header-height);
-  margin-left: var(--sidebar-width);
   padding: 1rem;
   background: #fff;
   min-height: calc(100vh - var(--header-height));
