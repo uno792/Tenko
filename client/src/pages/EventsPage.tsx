@@ -6,7 +6,7 @@ const EventPage: React.FC = () => {
   const [filter, setFilter] = useState("All Events");
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "40px" }}>
       <h1 style={{ marginBottom: "1rem" }}>Applications & Events</h1>
       <EventFilterBar selected={filter} onSelect={setFilter} />
       <EventList filter={filter} />
