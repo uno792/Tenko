@@ -1,0 +1,28 @@
+.googleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #8b1c32;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: #333;
+}
+
+.googleBtn:hover {
+  background: #f7f7f7;
+}
+
+.googleIcon {
+  font-size: 1.2rem;
+}
+
+.errorText {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}

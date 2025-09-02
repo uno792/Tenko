@@ -1,0 +1,85 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #fff5f7;
+  font-family: "Inter", sans-serif;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 20%, #f7d4dc 20%, transparent 40%);
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 450px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.logoBox {
+  background: #8b1c32;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin: 0 auto 1.5rem;
+  width: fit-content;
+}
+
+.title {
+  color: #8b1c32;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.loginPanel {
+  border: 1px solid #d9a5a5;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.panelTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.panelSubtitle {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.agreement {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.agreement a {
+  color: #8b1c32;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signupText {
+  margin-bottom: 1.5rem;
+}
+
+.signupText a {
+  color: #8b1c32;
+  font-weight: 600;
+  text-decoration: none;
+}

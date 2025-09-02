@@ -2,6 +2,7 @@ import React from "react";
 import styles from "./Header.module.css";
 import logo from "../../assets/logo.png";
 import { Bell, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Header: React.FC = () => {
   return (
@@ -17,6 +18,12 @@ const Header: React.FC = () => {
         <button className={styles.addButton}>
           <Plus size={20} />
         </button>
+        <Link to="/login">
+          <button>Login</button>
+        </Link>
+        <Link to="/signup">
+          <button>SignUp</button>
+        </Link>
       </div>
     </header>
   );
