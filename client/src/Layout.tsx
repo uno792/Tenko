@@ -9,6 +9,7 @@ export function Layout() {
       <Header />
       <div className={styles.main}>
         <Navbar />
+
         <div className={styles.content}>
           <Outlet />
         </div>
