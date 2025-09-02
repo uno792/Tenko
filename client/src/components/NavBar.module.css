@@ -9,8 +9,11 @@
   height: 100vh; /* Full viewport height */
   font-family: "Montserrat", sans-serif;
 
-  position: sticky;
-  top: 0; /* Sticks to the top of the viewport */
+  position: fixed;
+  top: 0; /* Fix to the top */
+  left: 0; /* Fix to the left */
+  padding-top: 140px; /* Leaves space for your header */
+  z-index: 999; /* Ensure it stays above main content but below header if needed */
 }
 
 .menu {
