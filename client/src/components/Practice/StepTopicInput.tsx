@@ -13,21 +13,29 @@ export default function StepTopicInput({
   onNext,
 }: StepTopicInputProps) {
   return (
-    <div className={styles.container}>
+    <div className={styles.card}>
       <h2 className={styles.heading}>What do you want to learn today?</h2>
+      <p className={styles.subheading}>
+        Enter a topic, paste some notes, or provide a subject area you’d like to
+        practice.
+      </p>
+
       <textarea
         className={styles.textarea}
         value={topicText}
         onChange={(e) => setTopicText(e.target.value)}
-        placeholder="Enter a topic or paste some notes..."
+        placeholder="e.g. Photosynthesis, World War II, Calculus..."
       />
-      <button
-        className={styles.nextButton}
-        onClick={onNext}
-        disabled={!topicText}
-      >
-        Next
-      </button>
+
+      <div className={styles.actions}>
+        <button
+          className={styles.nextButton}
+          onClick={onNext}
+          disabled={!topicText}
+        >
+          Next →
+        </button>
+      </div>
     </div>
   );
 }
