@@ -1,0 +1,15 @@
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #555; /* maroon */
+  margin-top: -20px;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: #555;
+}

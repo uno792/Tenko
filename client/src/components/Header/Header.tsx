@@ -8,7 +8,6 @@ const Header: React.FC = () => {
     <header className={styles.header}>
       <div className={styles.left}>
         <img src={logo} alt="Tenko Logo" className={styles.logo} />
-        <h1 className={styles.brand}>TENKO</h1>
       </div>
       <div className={styles.right}>
         <div className={styles.iconWrapper}>

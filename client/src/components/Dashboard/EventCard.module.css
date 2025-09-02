@@ -1,0 +1,55 @@
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fcf9f9;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.left {
+  text-align: left;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.badge {
+  background: #e53935;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+}
+
+.right {
+  text-align: right;
+}
+
+.date {
+  font-weight: 600;
+  color: #800000;
+}
+
+.days {
+  font-size: 0.85rem;
+  color: #777;
+}

@@ -21,15 +21,19 @@ const Navbar: React.FC = () => {
       label: "University Applications",
       icon: <FileText size={18} />,
     },
-    { to: "/", label: "Calendar", icon: <Calendar size={18} /> },
-    { to: "/practice", label: "Notes & Papers", icon: <BookOpen size={18} /> },
+    { to: "/calendar", label: "Calendar", icon: <Calendar size={18} /> },
+    {
+      to: "/notes",
+      label: "Notes & Papers",
+      icon: <BookOpen size={18} />,
+    },
     { to: "/findtutor", label: "Tutors", icon: <Users size={18} /> },
     {
-      to: "/",
+      to: "/practice",
       label: "AI Assistant",
       icon: <MessageSquare size={18} />,
     },
-    { to: "/", label: "Events", icon: <Star size={18} /> },
+    { to: "/events", label: "Events", icon: <Star size={18} /> },
   ];
 
   return (

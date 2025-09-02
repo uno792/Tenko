@@ -1,10 +1,17 @@
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; /* make it span across the viewport */
+  z-index: 1000; /* ensure it's above other elements */
+
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid #800020;
   padding: 0.5rem 1rem;
-  background: #fff;
+
+  background: linear-gradient(90deg, #fff5f7 0%, #ffffff 50%, #fff5f7 100%);
 }
 
 .left {
@@ -14,7 +21,7 @@
 }
 
 .logo {
-  height: 40px;
+  height: 80px;
   width: auto;
 }
 
@@ -28,6 +35,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding: 0.5rem 0; /* adds breathing room for icons */
+  padding-right: 30px;
 }
 
 .iconWrapper {

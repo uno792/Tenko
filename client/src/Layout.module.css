@@ -1,16 +1,48 @@
+:root {
+  --header-height: 100px; /* adjust to match your Header */
+  --sidebar-width: 220px; /* adjust to match your Navbar */
+}
+
 .layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
+/* Header fixed at top */
+:global(.header) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: var(--header-height);
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Main area is below header */
 .main {
   display: flex;
   flex: 1;
 }
 
+/* Sidebar fixed under header */
+:global(.navbar) {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  border-right: 2px solid #800020;
+  background: #fff;
+  overflow-y: auto;
+  z-index: 999;
+}
+
+/* Content respects header + sidebar */
 .content {
   flex: 1;
+  margin-top: var(--header-height);
+  margin-left: var(--sidebar-width);
   padding: 1rem;
   background: #fff;
   overflow-y: auto;
