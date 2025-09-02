@@ -1,6 +1,7 @@
 import React from "react";
 import GoogleLogInButton from "./Googleloginbutton";
 import styles from "./LoginPage.module.css";
+import { Link } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   return (
@@ -31,7 +32,10 @@ const LoginPage: React.FC = () => {
 
         {/* Signup */}
         <p className={styles.signupText}>
-          Don’t have an account? <a href="/signup">Sign up here</a>
+          Dont have an account?{" "}
+          <Link to="/signup">
+            <a>SignUp here</a>
+          </Link>
         </p>
       </div>
     </div>
