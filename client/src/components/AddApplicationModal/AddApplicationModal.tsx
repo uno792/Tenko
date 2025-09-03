@@ -1,3 +1,4 @@
+// src/components/AddApplicationModal/AddApplicationModal.tsx
 import React, { useEffect, useState } from "react";
 import styles from "./AddApplicationModal.module.css";
 import { searchPrograms } from "../../services/api";

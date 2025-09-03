@@ -1,26 +1,20 @@
-// src/pages/ApplicationsPage.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import styles from "./ApplicationsPage.module.css";
 import {
   addApplication,
   deleteApplication,
   getApplications,
+  updateApplication,
 } from "../services/api";
 import type { ApplicationRow, Program } from "../services/api";
 import ApplicationCard from "../components/ApplicationCard/ApplicationCard";
 import AddApplicationModal from "../components/AddApplicationModal/AddApplicationModal";
-
-function getUserId(): string {
-  // Use your auth; for hackathon fallback to a stored id
-  const saved = localStorage.getItem("user_id");
-  if (saved) return saved;
-  const demo = "demo-user";
-  localStorage.setItem("user_id", demo);
-  return demo;
-}
+import { useUser } from "../Users/UserContext";
+import LoginRequiredPanel from "../components/LoginRequiredPanel/LoginRequiredPanel";
 
 export default function ApplicationsPage() {
-  const userId = getUserId();
+  const { user } = useUser();
+  const userId = user?.id ?? null;
 
   const [apps, setApps] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,17 +22,26 @@ export default function ApplicationsPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
+    let alive = true;
     (async () => {
+      if (!userId) {
+        setApps([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const data = await getApplications(userId);
-        setApps(data);
+        if (alive) setApps(data);
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     })();
+    return () => {
+      alive = false;
+    };
   }, [userId]);
 
   const existingProgramIds = useMemo(
@@ -47,11 +50,28 @@ export default function ApplicationsPage() {
   );
 
   const handleAdd = async (p: Program) => {
+    if (!userId) {
+      alert("Please sign in to add an application.");
+      return;
+    }
     try {
       setBusyId(p.id);
       const row = await addApplication(userId, p.id);
-      // prepend newest
-      setApps((prev) => [row, ...prev]);
+      // If the server (for any reason) didn’t include the join, enrich with the Program the user chose
+      const enriched: ApplicationRow = row.program
+        ? row
+        : {
+            ...row,
+            program: {
+              id: p.id,
+              name: p.name,
+              aps_requirement: p.aps_requirement,
+              application_open: p.application_open,
+              application_close: p.application_close,
+              universities: p.universities ?? null,
+            },
+          };
+      setApps((prev) => [enriched, ...prev]);
     } catch (err) {
       console.error(err);
       alert("Failed to add application");
@@ -73,6 +93,36 @@ export default function ApplicationsPage() {
     }
   };
 
+  const handleMarkApplied = async (id: number) => {
+    const prev = apps;
+    setApps((xs) =>
+      xs.map((x) => (x.id === id ? { ...x, status: "submitted" } : x))
+    );
+    try {
+      await updateApplication(id, { status: "submitted" });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to mark as applied. Restoring previous state.");
+      setApps(prev);
+    }
+  };
+
+  if (!userId) {
+    return (
+      <div className={styles.wrap}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.title}>University Application Hub</h1>
+            <p className={styles.subtitle}>
+              Sign in to start tracking your applications, deadlines, and APS.
+            </p>
+          </div>
+        </header>
+        <LoginRequiredPanel />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.wrap}>
       <header className={styles.header}>
@@ -85,7 +135,6 @@ export default function ApplicationsPage() {
       </header>
 
       <div className={styles.grid}>
-        {/* Left column: APS block placeholder (wire your existing component here) */}
         <section className={styles.card}>
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>APS Calculator</h2>
@@ -93,7 +142,6 @@ export default function ApplicationsPage() {
           <p className={styles.muted}>Plug in your existing APS inputs here.</p>
         </section>
 
-        {/* Middle column: Applications */}
         <section className={styles.card}>
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Applications</h2>
@@ -128,19 +176,21 @@ export default function ApplicationsPage() {
                   key={a.id}
                   app={a}
                   onRemove={() => handleRemove(a.id)}
+                  onMarkApplied={() => handleMarkApplied(a.id)}
                 />
               ))}
             </ul>
           )}
         </section>
 
-        {/* Right column: Upcoming Deadlines */}
+        {/* Deadlines: hide submitted */}
         <section className={styles.card}>
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Upcoming Deadlines</h2>
           </div>
           <ul className={styles.deadlines}>
             {apps
+              .filter((a) => a.status !== "submitted")
               .map((a) => ({
                 id: a.id,
                 name: a.program?.name ?? "Programme",

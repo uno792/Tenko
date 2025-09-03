@@ -1,7 +1,12 @@
 // src/services/api.ts
 export const API_BASE = import.meta.env.VITE_API_BASE_URL; // e.g., http://localhost:3000
 
-export type Uni = { name: string; abbreviation?: string | null };
+export type Uni = {
+  name: string;
+  abbreviation?: string | null;
+  website?: string | null; // keep this from previous change
+};
+
 export type Program = {
   id: number;
   name: string;
@@ -51,4 +56,18 @@ export async function addApplication(user_id: string, program_id: number) {
 export async function deleteApplication(id: number) {
   const res = await fetch(`${API_BASE}/applications/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete application");
+}
+
+// ⬇️ NEW: patch application (status/deadline/notes)
+export async function updateApplication(
+  id: number,
+  patch: Partial<Pick<ApplicationRow, "status" | "deadline" | "notes">>
+) {
+  const res = await fetch(`${API_BASE}/applications/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error("Failed to update application");
+  return (await res.json()) as ApplicationRow;
 }

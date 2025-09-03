@@ -105,7 +105,8 @@ router.get("/programs", async (req, res) => {
     let query = supabase
       .from("programs")
       .select(
-        "id,name,aps_requirement,application_open,application_close,universities:universities(name,abbreviation)"
+        // ⬇️ add website here
+        "id,name,aps_requirement,application_open,application_close,universities:universities(name,abbreviation,website)"
       )
       .order("name", { ascending: true })
       .limit(30);
@@ -389,69 +390,82 @@ router.post("/resources/upload", upload.single("file"), async (req, res) => {
    - DELETE /applications/:id
    - PATCH /applications/:id { status?, deadline?, notes? }
    ========================= */
-router.get("/applications", async (req, res) => {
-  try {
-    const user_id = (req.query.user_id as string | undefined)?.trim();
-    if (!user_id) {
-      return res.status(400).json({ error: "user_id is required" });
+   router.get("/applications", async (req, res) => {
+    try {
+      const user_id = (req.query.user_id as string | undefined)?.trim();
+      if (!user_id) {
+        return res.status(400).json({ error: "user_id is required" });
+      }
+  
+      const { data, error } = await supabase
+        .from("applications")
+        .select(
+          // ⬇️ add website here
+          "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
+        )
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false });
+  
+      if (error) throw error;
+      return res.status(200).json(data);
+    } catch (err: any) {
+      console.error("❌ /applications error:", err.message);
+      return res.status(500).json({ error: "Failed to fetch applications" });
     }
+  });
 
-    const { data, error } = await supabase
-      .from("applications")
-      .select(
-        "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation))"
-      )
-      .eq("user_id", user_id)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return res.status(200).json(data);
-  } catch (err: any) {
-    console.error("❌ /applications error:", err.message);
-    return res.status(500).json({ error: "Failed to fetch applications" });
-  }
-});
-
-router.post("/applications", async (req, res) => {
-  try {
-    const { user_id, program_id } = req.body as {
-      user_id?: string;
-      program_id?: number;
-    };
-    if (!user_id || !program_id) {
-      return res
-        .status(400)
-        .json({ error: "user_id and program_id are required" });
+  router.post("/applications", async (req, res) => {
+    try {
+      const { user_id, program_id } = req.body as {
+        user_id?: string;
+        program_id?: number;
+      };
+      if (!user_id || !program_id) {
+        return res
+          .status(400)
+          .json({ error: "user_id and program_id are required" });
+      }
+  
+      // look up program close date
+      const { data: prog, error: pErr } = await supabase
+        .from("programs")
+        .select("id,application_close")
+        .eq("id", program_id)
+        .single();
+      if (pErr) throw pErr;
+  
+      const deadline = prog?.application_close ?? null;
+  
+      // 1) Insert minimal row to get the new id
+      const { data: inserted, error: insErr } = await supabase
+        .from("applications")
+        .insert({
+          user_id,
+          program_id,
+          status: "planning",
+          deadline,
+        })
+        .select("id,user_id,program_id,status,deadline,submitted_at,notes")
+        .single();
+      if (insErr) throw insErr;
+  
+      // 2) Re-select with joins so the client immediately gets program + university website
+      const { data: joined, error: joinErr } = await supabase
+        .from("applications")
+        .select(
+          "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
+        )
+        .eq("id", inserted.id)
+        .single();
+      if (joinErr) throw joinErr;
+  
+      return res.status(201).json(joined);
+    } catch (err: any) {
+      console.error("❌ POST /applications error:", err.message);
+      return res.status(500).json({ error: "Failed to create application" });
     }
-
-    // look up program close date
-    const { data: prog, error: pErr } = await supabase
-      .from("programs")
-      .select("id,application_close")
-      .eq("id", program_id)
-      .single();
-    if (pErr) throw pErr;
-
-    const deadline = prog?.application_close ?? null;
-
-    const { data, error } = await supabase
-      .from("applications")
-      .insert({
-        user_id,
-        program_id,
-        status: "planning",
-        deadline,
-      })
-      .select("*")
-      .single();
-
-    if (error) throw error;
-    return res.status(201).json(data);
-  } catch (err: any) {
-    console.error("❌ POST /applications error:", err.message);
-    return res.status(500).json({ error: "Failed to create application" });
-  }
-});
+  });
+  
 
 router.delete("/applications/:id", async (req, res) => {
   try {
