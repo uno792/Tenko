@@ -381,6 +381,153 @@ router.post("/resources/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+router.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.url}`, {
+    body: req.body,
+    query: req.query,
+  });
+  next();
+});
+
+/* ============================
+   Profile Routes
+============================ */
+
+// Fetch user + tutor data
+router.get("/profile/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const { data: user, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (userError) throw userError;
+
+    const { data: tutor } = await supabase
+      .from("tutors")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    return res.json({ ...user, tutor });
+  } catch (err: any) {
+    console.error("❌ Profile fetch error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Update user info
+router.put("/profile/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { username, email, phone, institution, grade_year, bio } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        username: username,
+        email,
+        phone,
+        institution,
+        grade_year,
+        bio,
+      })
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log("✅ Profile updated for user:", userId);
+    return res.json(data);
+  } catch (err: any) {
+    console.error("❌ Profile update error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/* ============================
+   Tutor Routes
+============================ */
+
+// Create tutor record
+router.post("/tutor", async (req, res) => {
+  const { user_id, subjects, bio, rate_per_hour, availability, grade_levels } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from("tutors")
+      .insert([
+        { user_id, subjects, bio, rate_per_hour, availability, grade_levels }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log("✅ Tutor created for user:", user_id);
+    return res.json(data);
+  } catch (err: any) {
+    console.error("❌ Tutor create error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/*router.post("/tutor", async (req, res) => {
+  const { user_id, subjects, bio, rate_per_hour, availability } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from("tutors")
+      .insert([
+        { user_id, subjects, bio, rate_per_hour, availability }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log("✅ Tutor created for user:", user_id);
+    return res.json(data);
+  } catch (err: any) {
+    console.error("❌ Tutor create error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});*/
+
+// Update tutor record
+router.put("/tutor/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { subjects, bio, rate_per_hour, availability, grade_levels } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from("tutors")
+      .update({
+        subjects,
+        bio,
+        rate_per_hour,
+        availability,
+        grade_levels
+      })
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log("✅ Tutor updated for user:", userId);
+    return res.json(data);
+  } catch (err: any) {
+    console.error("❌ Tutor update error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+
 /* =========================
    NEW: APPLICATIONS CRUD
    - GET /applications?user_id=...

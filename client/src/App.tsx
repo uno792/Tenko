@@ -11,6 +11,8 @@ import AIAssistantPage from "./pages/AIAssistantPage";
 import EventPage from "./pages/EventsPage";
 import LoginPage from "./components/LoginPageComp/LoginPage";
 import SignUpPage from "./components/SignupPageComp/SignUpPage";
+import ProfilePage from "./pages/Profile";
+
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
               <Route path="/events" element={<EventPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Routes>
         </Router>
