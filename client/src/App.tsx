@@ -11,7 +11,7 @@ import AIAssistantPage from "./pages/AIAssistantPage";
 import EventPage from "./pages/EventsPage";
 import LoginPage from "./components/LoginPageComp/LoginPage";
 import SignUpPage from "./components/SignupPageComp/SignUpPage";
-
+import CalendarPage from "./components/CalendarPageComp/CalendarPage";
 function App() {
   return (
     <GoogleOAuthProvider clientId="719123023157-8iqvisdfo85e23emcfe7gth9vqa7ebop.apps.googleusercontent.com">
@@ -28,6 +28,7 @@ function App() {
               <Route path="/events" element={<EventPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
             </Route>
           </Routes>
         </Router>
