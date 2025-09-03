@@ -12,16 +12,22 @@
   font-size: 0.95rem;
 }
 
-.select {
-  padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.filterBtn {
+.sortBtn {
   border: 1px solid #ddd;
   background: #fff;
   border-radius: 8px;
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 1rem;
   cursor: pointer;
+  font-weight: 600;
+  color: #444;
+}
+
+.sortBtn:hover {
+  background: #f3f4f6;
+}
+
+.active {
+  background: #800020;
+  color: #fff;
+  border: none;
 }

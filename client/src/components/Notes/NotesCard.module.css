@@ -15,6 +15,7 @@
 
 .icon {
   font-size: 2rem;
+  color: #800020;
 }
 
 .title {
@@ -26,15 +27,31 @@
 .tag {
   margin-left: 0.5rem;
   font-size: 0.8rem;
-  background: #f3e5f5;
-  color: #800020;
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
+  background: #eee;
+  color: #800020;
+}
+
+.pastPaper {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.examPaper {
+  background: #e3f2fd;
+  color: #1565c0;
 }
 
 .meta {
   font-size: 0.9rem;
   color: #666;
+}
+
+.description {
+  font-size: 0.9rem;
+  margin: 0.4rem 0;
+  color: #444;
 }
 
 .stats {
@@ -44,38 +61,39 @@
   gap: 1rem;
 }
 
-.right {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
 .date {
-  font-size: 0.85rem;
   color: #777;
 }
 
-.actions {
-  margin-top: 0.5rem;
+.right {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: 0.5rem;
 }
 
-.preview,
-.download,
-.share {
-  border: 1px solid #ddd;
-  border-radius: 6px;
+.upvote,
+.download {
+  border: none;
+  border-radius: 8px;
   padding: 0.4rem 0.8rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.upvote {
+  background: #f3f4f6;
+  color: #444;
+}
+
+.upvote:hover {
+  background: #e5e7eb;
 }
 
 .download {
   background: #800020;
   color: #fff;
-  border: none;
 }
 
 .download:hover {
