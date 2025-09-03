@@ -19,7 +19,7 @@ const router = express.Router();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api", router);
+app.use(router);
 
 app.get("/api", (req: Request, res: Response) => {
   res.send("Hello from the API");
