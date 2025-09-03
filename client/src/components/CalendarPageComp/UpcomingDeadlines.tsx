@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./Sidebar.module.css";
+import styles from "./SideBar.module.css";
 
 const UpcomingDeadlines: React.FC = () => {
   return (
