@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./ContributorsCard.module.css";
-
+import { baseURL } from "../../config";
 interface Contributor {
   username: string;
   uploads: number;
@@ -15,7 +15,9 @@ export default function ContributorsCard() {
   useEffect(() => {
     async function fetchContributors() {
       try {
-        const res = await fetch("http://localhost:3000/resources/top-contributors?limit=5");
+        const res = await fetch(
+          `${baseURL}/resources/top-contributors?limit=5`
+        );
         if (!res.ok) throw new Error("Failed to fetch contributors");
         const data = await res.json();
         setContributors(data);
@@ -28,8 +30,10 @@ export default function ContributorsCard() {
     fetchContributors();
   }, []);
 
-  if (loading) return <div className={styles.card}>Loading top contributors...</div>;
-  if (!contributors.length) return <div className={styles.card}>No contributors yet.</div>;
+  if (loading)
+    return <div className={styles.card}>Loading top contributors...</div>;
+  if (!contributors.length)
+    return <div className={styles.card}>No contributors yet.</div>;
 
   return (
     <div className={styles.card}>
@@ -48,7 +52,6 @@ export default function ContributorsCard() {
     </div>
   );
 }
-
 
 /*import styles from "./ContributorsCard.module.css";
 

@@ -1,5 +1,5 @@
 import styles from "./NotesCard.module.css";
-
+import { baseURL } from "../../config";
 interface NotesCardProps {
   id: number;
   title: string;
@@ -29,7 +29,7 @@ export default function NotesCard({
 }: NotesCardProps) {
   async function handleUpvote() {
     try {
-      const res = await fetch(`http://localhost:3000/resources/${id}/upvote`, {
+      const res = await fetch(`${baseURL}/resources/${id}/upvote`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Failed to upvote");
@@ -41,7 +41,7 @@ export default function NotesCard({
 
   async function handleDownload() {
     try {
-      const res = await fetch(`http://localhost:3000/resources/${id}/download`, {
+      const res = await fetch(`${baseURL}/resources/${id}/download`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Failed to increment download");
@@ -92,7 +92,6 @@ export default function NotesCard({
     </div>
   );
 }
-
 
 /*import styles from "./NotesCard.module.css";
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import UploadModal from "./UploadModal";
 import GeneratePastPaperModal from "./GeneratePastPaperModal";
 import styles from "./NotesHeader.module.css";
-
+import { baseURL } from "../../config";
 export default function NotesHeader() {
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isGenerateOpen, setGenerateOpen] = useState(false);
@@ -10,7 +10,7 @@ export default function NotesHeader() {
   // ✅ Actually send uploads to backend
   const handleUpload = async (formData: FormData) => {
     try {
-      const res = await fetch("http://localhost:3000/resources/upload", {
+      const res = await fetch(`${baseURL}/resources/upload`, {
         method: "POST",
         body: formData,
       });
@@ -34,7 +34,12 @@ export default function NotesHeader() {
   };
 
   const handleGenerate = (selected: any, difficulty: string) => {
-    console.log("Generating Past Paper with:", selected, "Difficulty:", difficulty);
+    console.log(
+      "Generating Past Paper with:",
+      selected,
+      "Difficulty:",
+      difficulty
+    );
     // TODO: hook up Gemini API here later
   };
 
@@ -45,10 +50,16 @@ export default function NotesHeader() {
         <p className={styles.subtitle}>Share and access study materials</p>
       </div>
       <div className={styles.actions}>
-        <button className={styles.uploadBtn} onClick={() => setUploadOpen(true)}>
+        <button
+          className={styles.uploadBtn}
+          onClick={() => setUploadOpen(true)}
+        >
           ⬆ Upload Notes
         </button>
-        <button className={styles.generateBtn} onClick={() => setGenerateOpen(true)}>
+        <button
+          className={styles.generateBtn}
+          onClick={() => setGenerateOpen(true)}
+        >
           🧩 Generate Past Paper
         </button>
       </div>
@@ -87,8 +98,6 @@ export default function NotesHeader() {
     </div>
   );
 }
-
-
 
 /*import { useState } from "react";
 import UploadModal from "./UploadModal";

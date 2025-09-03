@@ -29,9 +29,22 @@ app.get("/status", (req: Request, res: Response) => {
   res.json({ status: "The server is running" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+function assertServiceRole() {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is undefined");
+  }
+  try {
+    const payload = JSON.parse(
+      Buffer.from(key.split(".")[1], "base64url").toString("utf8")
+    );
+    console.log("Supabase key role:", payload.role); // should be "service_role"
+  } catch {
+    console.warn("Could not decode SUPABASE_SERVICE_ROLE_KEY (not a JWT?)");
+  }
+}
+assertServiceRole();
+
 // getting names to display
 router.get("/names", async (req, res) => {
   const { data, error } = await supabase
