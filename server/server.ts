@@ -913,23 +913,34 @@ router.get("/recommendations", async (req, res) => {
       .eq("profile_id", profile.id);
     if (rErr) throw rErr;
 
-    // Pull programmes for this university with requirement minima
+    // Index rows by kind for easy access
+    const findRow = (k: string) => rows?.find((r) => r.kind === k);
+    const hl = findRow("home_language");
+    const al = findRow("additional_language");
+    const lo = findRow("life_orientation");
+    const mz = findRow("mathematics"); // we also use this for maths_stream
+    const others = rows?.filter((r) => r.kind === "other") ?? [];
+
+    // APS total
+    const total_aps = rows?.reduce((sum, r) => sum + (r.aps_points ?? 0), 0) ?? 0;
+
+    // Programmes for this university
     const { data: programs, error: progErr } = await supabase
       .from("programs")
       .select(`
-        id, name, aps_requirement, application_close, points_model,
+        id, name, aps_requirement, application_close, requirement_notes,
         min_home_language_level, min_home_language_percent,
         min_first_additional_language_level, min_first_additional_language_percent,
         min_mathematics_level, min_mathematics_percent,
         min_physical_sciences_level, min_physical_sciences_percent,
-        requirement_notes,
+        accepts_maths_literacy, min_maths_literacy_level, min_maths_literacy_percent,
         universities:universities(name,abbreviation,website)
       `)
       .eq("university_id", university_id)
       .order("name", { ascending: true });
     if (progErr) throw progErr;
 
-    // Helper: turn our band into level & percent for checks
+    // Helpers to derive levels/percents from bands
     const bandToPercent = (band: string) => {
       switch (band) {
         case "90-100": return 90;
@@ -942,7 +953,6 @@ router.get("/recommendations", async (req, res) => {
         default:       return 0;
       }
     };
-    // Approximate NSC level mapping by band midpoints (good enough for screening)
     const bandToLevel = (band: string) => {
       switch (band) {
         case "90-100": return 7;
@@ -956,18 +966,9 @@ router.get("/recommendations", async (req, res) => {
       }
     };
 
-    const findRow = (kind: string) => rows.find(r => r.kind === kind);
-
     const results = programs.map((p: any) => {
-      const hl = findRow("home_language");
-      const al = findRow("additional_language");
-      const mz = findRow("mathematics"); // includes maths_literacy in stream if needed
-      const lo = findRow("life_orientation");
-
-      const aps_ok = !p.aps_requirement || (profile.total_aps ?? 0) >= p.aps_requirement;
-
-      // Build subject checks
-      const checks: Array<{ tag: string; ok: boolean; need?: string; has?: string }> = [];
+      const aps_ok = p.aps_requirement ? total_aps >= p.aps_requirement : true;
+      const checks: Array<{ tag: string; ok: boolean; need: string; has?: string }> = [];
 
       // HL
       if (p.min_home_language_level || p.min_home_language_percent) {
@@ -980,7 +981,7 @@ router.get("/recommendations", async (req, res) => {
         checks.push({ tag: "HL", ok, need, has: `L${hasLevel}` });
       }
 
-      // AL (FAL)
+      // AL / FAL
       if (p.min_first_additional_language_level || p.min_first_additional_language_percent) {
         const hasLevel = al ? bandToLevel(al.band_key) : 0;
         const hasPct = al ? bandToPercent(al.band_key) : 0;
@@ -991,32 +992,67 @@ router.get("/recommendations", async (req, res) => {
         checks.push({ tag: "FAL", ok, need, has: `L${hasLevel}` });
       }
 
-      // Mathematics (treat both Maths and Maths Lit as “maths” minimums; you can split if programmes distinguish)
-      if (p.min_mathematics_level || p.min_mathematics_percent) {
+      // Mathematics / Maths Literacy — enforce correct stream
+      if (
+        p.min_mathematics_level ||
+        p.min_mathematics_percent ||
+        p.accepts_maths_literacy ||
+        p.min_maths_literacy_level ||
+        p.min_maths_literacy_percent
+      ) {
+        const stream = mz?.maths_stream === "maths_literacy" ? "maths_literacy" : "mathematics";
         const hasLevel = mz ? bandToLevel(mz.band_key) : 0;
         const hasPct = mz ? bandToPercent(mz.band_key) : 0;
-        const need = (p.min_mathematics_level ? `L${p.min_mathematics_level}` : "")
-          + (p.min_mathematics_percent ? `${p.min_mathematics_level ? " / " : ""}${p.min_mathematics_percent}%` : "");
-        const ok = (!p.min_mathematics_level || hasLevel >= p.min_mathematics_level) &&
-                   (!p.min_mathematics_percent || hasPct >= p.min_mathematics_percent);
-        checks.push({ tag: mz?.maths_stream === "maths_literacy" ? "Maths Lit" : "Maths", ok, need, has: `L${hasLevel}` });
+
+        let ok = true;
+        let need = "";
+        let tag = stream === "maths_literacy" ? "Maths Lit" : "Maths";
+
+        if (stream === "maths_literacy") {
+          // If programme does NOT accept Maths Literacy, fail immediately.
+          if (!p.accepts_maths_literacy) {
+            ok = false;
+            need = "Pure Maths required";
+          } else {
+            // Programme accepts Maths Lit — enforce Maths Lit minima if present.
+            const needParts: string[] = [];
+            if (p.min_maths_literacy_level) {
+              needParts.push(`L${p.min_maths_literacy_level}`);
+              if (hasLevel < p.min_maths_literacy_level) ok = false;
+            }
+            if (p.min_maths_literacy_percent) {
+              needParts.push(`${p.min_maths_literacy_percent}%`);
+              if (hasPct < p.min_maths_literacy_percent) ok = false;
+            }
+            need = needParts.join(" / ") || "Accepted";
+          }
+        } else {
+          // Pure Maths stream — enforce pure Maths minima.
+          const needParts: string[] = [];
+          if (p.min_mathematics_level) {
+            needParts.push(`L${p.min_mathematics_level}`);
+            if (hasLevel < p.min_mathematics_level) ok = false;
+          }
+          if (p.min_mathematics_percent) {
+            needParts.push(`${p.min_mathematics_percent}%`);
+            if (hasPct < p.min_mathematics_percent) ok = false;
+          }
+          need = needParts.join(" / ") || "—";
+        }
+
+        checks.push({ tag, ok, need, has: `L${hasLevel}` });
       }
 
-      // Physical Sciences
+      // Physical Sciences (kept conservative; mark unknown unless you match subject_id)
       if (p.min_physical_sciences_level || p.min_physical_sciences_percent) {
-        // Look for any “other” set to a science band — we didn’t save subject_id names here, so just reflect minimum
-        // If you want a strict check, extend the profile rows to include subject_id for “other” and match by name/id = Physical Sciences.
-        // For now treat as “if user entered a band for Physical Sciences in OTHER rows”. Not available here -> mark as unknown(false).
-        const ok = false; // unknown unless you store and match the subject_id == "Physical Sciences"
-        checks.push({
-          tag: "Physical Sci",
-          ok,
-          need: (p.min_physical_sciences_level ? `L${p.min_physical_sciences_level}` : "") +
-                (p.min_physical_sciences_percent ? `${p.min_physical_sciences_level ? " / " : ""}${p.min_physical_sciences_percent}%` : "")
-        });
+        const ok = false; // Unknown without explicit subject_id match
+        const need =
+          (p.min_physical_sciences_level ? `L${p.min_physical_sciences_level}` : "") +
+          (p.min_physical_sciences_percent ? `${p.min_physical_sciences_level ? " / " : ""}${p.min_physical_sciences_percent}%` : "");
+        checks.push({ tag: "Physical Sci", ok, need });
       }
 
-      const all_ok = aps_ok && checks.every(c => c.ok !== false); // unknown treated as false
+      const all_ok = aps_ok && checks.every((c) => c.ok !== false); // unknown treated as false
       return {
         program: {
           id: p.id,
@@ -1029,12 +1065,10 @@ router.get("/recommendations", async (req, res) => {
         },
         aps_ok,
         checks,
-        score: (aps_ok ? 1 : 0) + checks.filter(c => c.ok).length, // simple ranking
+        all_ok,
       };
     });
 
-    // Rank by score desc, then name
-    results.sort((a, b) => b.score - a.score || a.program.name.localeCompare(b.program.name));
     res.json(results);
   } catch (e: any) {
     console.error("❌ GET /recommendations", e.message);

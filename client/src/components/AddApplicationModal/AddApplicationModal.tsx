@@ -36,46 +36,40 @@ type Props = {
   busyProgramId: number | null;
 };
 
-// Build chips from checks
-function buildRequirementChips(rec: ProgramRecommendation): string[] {
-  return (rec.checks || []).map((c) =>
-    c.need ? `${c.tag} ≥ ${c.need}` : c.tag
-  );
+// Build chips from checks — now returns label + ok flag
+function buildRequirementChips(
+  rec: ProgramRecommendation
+): { label: string; ok: boolean | null }[] {
+  return (rec.checks || []).map((c: any) => ({
+    label: c.need ? `${c.tag} ≥ ${c.need}` : c.tag,
+    ok: typeof c.ok === "boolean" ? c.ok : null, // null => unknown
+  }));
 }
 
 // Is the programme already closed?
 function isClosed(dateStr: string | null | undefined): boolean {
-  if (!dateStr) return false; // if unknown, assume not closed
+  if (!dateStr) return false;
   const close = new Date(dateStr);
   const now = new Date();
-  // consider it closed if its date is strictly before today (at end of day)
   return close.getTime() < now.getTime();
 }
 
-// For sorting: open first; for open, sort soonest closing date first; for closed, sort by most recent close first
 function compareRecommendations(
   a: ProgramRecommendation,
   b: ProgramRecommendation
 ) {
   const pa = a.program as ProgramLike;
   const pb = b.program as ProgramLike;
-
   const aClosed = isClosed(pa.application_close);
   const bClosed = isClosed(pb.application_close);
-
-  if (aClosed !== bClosed) return aClosed ? 1 : -1; // open first
-
-  // Both open or both closed: sort by closing date ascending (nulls last)
+  if (aClosed !== bClosed) return aClosed ? 1 : -1;
   const aTime = pa.application_close
     ? new Date(pa.application_close).getTime()
     : Number.POSITIVE_INFINITY;
   const bTime = pb.application_close
     ? new Date(pb.application_close).getTime()
     : Number.POSITIVE_INFINITY;
-
   if (aTime !== bTime) return aTime - bTime;
-
-  // Tie-breaker: name
   return pa.name.localeCompare(pb.name);
 }
 
@@ -121,7 +115,6 @@ export default function AddApplicationModal({
     })();
   }, [open, userId]);
 
-  // Reset when closed
   useEffect(() => {
     if (!open) {
       setSearch("");
@@ -180,9 +173,9 @@ export default function AddApplicationModal({
           <ul className={styles.gridCompact}>
             {list.map((r) => {
               const p = r.program as ProgramLike;
-              const disabled =
-                existingProgramIds.has(p.id) || busyProgramId === p.id;
               const closed = isClosed(p.application_close);
+              const eligible =
+                !!r.aps_ok && (r.checks || []).every((c: any) => c.ok === true);
               const chips = buildRequirementChips(r);
 
               return (
@@ -210,8 +203,24 @@ export default function AddApplicationModal({
                   {chips.length > 0 && (
                     <div className={styles.reqChipsTight}>
                       {chips.map((c, i) => (
-                        <span key={i} className={styles.reqChipTight}>
-                          {c}
+                        <span
+                          key={i}
+                          className={
+                            c.ok === true
+                              ? styles.reqChipOK
+                              : c.ok === false
+                              ? styles.reqChipFail
+                              : styles.reqChipUnknown
+                          }
+                          title={
+                            c.ok === true
+                              ? "Requirement met"
+                              : c.ok === false
+                              ? "Requirement not met"
+                              : "Unknown"
+                          }
+                        >
+                          {c.label}
                         </span>
                       ))}
                     </div>
@@ -224,10 +233,10 @@ export default function AddApplicationModal({
                       <span className={styles.closedPill} aria-disabled="true">
                         Closed
                       </span>
-                    ) : (
+                    ) : eligible ? (
                       <button
                         className={styles.primaryBtnSmall}
-                        disabled={disabled}
+                        disabled={busyProgramId === p.id}
                         onClick={() =>
                           onAdd({
                             id: p.id,
@@ -245,6 +254,10 @@ export default function AddApplicationModal({
                       >
                         {busyProgramId === p.id ? "Adding..." : "Add"}
                       </button>
+                    ) : (
+                      <span className={styles.notEligiblePill}>
+                        Doesn’t meet requirements
+                      </span>
                     )}
                   </div>
                 </li>
