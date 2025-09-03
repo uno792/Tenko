@@ -3,6 +3,7 @@
 |---------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | Static Website      | [Static Site](https://tenko-sepia.vercel.app/)                                       |
 | Web Server | [Web Server](https://tenko-ogc0.onrender.com/)                                    |
+| Landing Site | [Landing Page](https://tenko-landing-page.vercel.app/)                                    |
 
 
 ## Local Setup
