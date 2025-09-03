@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./Sidebar.module.css";
+import styles from "./SideBar.module.css";
 
 const categories = [
   { color: "#6a1b9a", label: "University Deadlines" },
