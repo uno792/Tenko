@@ -7,6 +7,11 @@ import { fetchText } from "./scripts/lib/fetchers";
 import { llmExtract } from "./scripts/lib/llm";
 import { upsertEvents } from "./scripts/lib/supabase";
 import path from "node:path"; 
+import multer from "multer"; // middleware for handling file uploads
+import { v4 as uuidv4 } from "uuid";
+
+// set up multer to store files in memory (not on disk)
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -103,6 +108,263 @@ router.get("/programs", async (req, res) => {
   } catch (err: any) {
     console.error("❌ /programs error:", err.message);
     return res.status(500).json({ error: "Failed to fetch programs" });
+  }
+});
+
+// Upvote
+router.patch("/resources/:id/upvote", async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "Invalid resource ID" });
+
+    const { error } = await supabase.rpc("increment_upvotes", { resource_id: id });
+    if (error) throw error;
+
+    return res.status(200).json({ message: "Upvote added" });
+  } catch (err: any) {
+    console.error("❌ PATCH /resources/:id/upvote error:", err.message);
+    return res.status(500).json({ error: "Failed to upvote resource" });
+  }
+});
+
+// Download
+router.patch("/resources/:id/download", async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ error: "Invalid resource ID" });
+
+    const { error } = await supabase.rpc("increment_downloads", { resource_id: id });
+    if (error) throw error;
+
+    return res.status(200).json({ message: "Download incremented" });
+  } catch (err: any) {
+    console.error("❌ PATCH /resources/:id/download error:", err.message);
+    return res.status(500).json({ error: "Failed to increment downloads" });
+  }
+});
+
+// ==============================
+// NEW: Get top contributors
+// ==============================
+router.get("/resources/top-contributors", async (req: Request, res: Response) => {
+  try {
+    const limit = Number(req.query.limit) || 5;
+
+    // Query with user join
+    const { data, error } = await supabase
+      .from("resources")
+      .select("user_id, upvotes, downloads, users(username)")
+      .order("upvotes", { ascending: false });
+
+    if (error) throw error;
+
+    // Aggregate by user
+    const contributors: Record<
+      string,
+      { username: string; uploads: number; downloads: number; points: number }
+    > = {};
+
+    (data || []).forEach((r: any) => {
+      if (!r.user_id) return;
+      if (!contributors[r.user_id]) {
+        contributors[r.user_id] = {
+          username: (r.users as any)?.username || "Unknown", // 👈 cast to any to silence TS
+          uploads: 0,
+          downloads: 0,
+          points: 0,
+        };
+      }
+      contributors[r.user_id].uploads += 1;
+      contributors[r.user_id].downloads += r.downloads || 0;
+      contributors[r.user_id].points += r.upvotes || 0;
+    });
+
+    // Sort by points
+    const sorted = Object.values(contributors)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, limit);
+
+    res.json(sorted);
+  } catch (err: any) {
+    console.error("❌ GET /resources/top-contributors error:", err.message);
+    res.status(500).json({ error: "Failed to fetch top contributors" });
+  }
+});
+
+
+// ==============================
+// NEW: Get stats for a user
+// ==============================
+router.get("/resources/stats", async (req: Request, res: Response) => {
+  try {
+    const user_id = (req.query.user_id as string) || "test-user-123"; // fallback for now
+
+    // count uploads
+    const { count: uploads, error: uploadsError } = await supabase
+      .from("resources")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user_id);
+    if (uploadsError) throw uploadsError;
+
+    // sum downloads
+    const { data: dlData, error: dlError } = await supabase
+      .from("resources")
+      .select("downloads")
+      .eq("user_id", user_id);
+    if (dlError) throw dlError;
+    const downloads = dlData.reduce((sum, r) => sum + (r.downloads || 0), 0);
+
+    // sum upvotes (points)
+    const { data: upData, error: upError } = await supabase
+      .from("resources")
+      .select("upvotes")
+      .eq("user_id", user_id);
+    if (upError) throw upError;
+    const points = upData.reduce((sum, r) => sum + (r.upvotes || 0), 0);
+
+    // very basic "rank": count how many users have more points
+    const { data: allUsers, error: allErr } = await supabase
+      .from("resources")
+      .select("user_id, upvotes");
+    if (allErr) throw allErr;
+
+    const totals: Record<string, number> = {};
+    allUsers.forEach((r) => {
+      totals[r.user_id] = (totals[r.user_id] || 0) + (r.upvotes || 0);
+    });
+    const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const rank = sorted.findIndex(([id]) => id === user_id) + 1;
+
+    res.json({ uploads, downloads, points, rank });
+  } catch (err: any) {
+    console.error("❌ GET /resources/stats error:", err.message);
+    res.status(500).json({ error: "Failed to fetch stats" });
+  }
+});
+
+
+
+// ==============================
+// NEW: Get resources (with optional filters)
+// ==============================
+router.get("/resources", async (req: Request, res: Response) => {
+  try {
+    let query = supabase.from("resources").select(`
+      id,
+      title,
+      type,
+      subject,
+      grade_level,
+      institution,
+      description,
+      file_url,
+      downloads,
+      upvotes,
+      created_at,
+      users(username)
+    `);
+
+    // 🔍 Title search
+    if (req.query.search) {
+      query = query.ilike("title", `%${req.query.search}%`);
+    }
+
+    // 📌 Optional filters
+    if (req.query.subject) {
+      query = query.eq("subject", req.query.subject as string);
+    }
+    if (req.query.type) {
+      query = query.eq("type", req.query.type as string);
+    }
+
+    // 🔝 Sort toggle
+    if (req.query.sort === "upvotes") {
+      query = query.order("upvotes", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return res.status(200).json(data);
+  } catch (err: any) {
+    console.error("❌ GET /resources error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch resources" });
+  }
+});
+
+
+
+/**
+ * POST /resources/upload
+ * Handles file upload + DB insert
+ */
+router.post("/resources/upload", upload.single("file"), async (req, res) => {
+  try {
+    const { user_id, title, type, subject, grade_level, institution, description } = req.body;
+    const file = req.file;
+
+    // 🐞 Debugging log
+    console.log("📥 Upload request body:", req.body);
+    console.log("📎 File info:", file?.originalname, file?.mimetype, file?.size);
+
+    if (!file) {
+      return res.status(400).json({ error: "File is required" });
+    }
+    if (!user_id || !title || !type) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Generate unique file name to avoid collisions
+    const fileExt = file.originalname.split(".").pop();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `uploads/${fileName}`;
+
+    // Upload file to Supabase storage
+    const { error: storageError } = await supabase.storage
+      .from("resources_files")
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (storageError) {
+      console.error("❌ Storage upload error:", storageError.message);
+      return res.status(500).json({ error: "Failed to upload file" });
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from("resources_files")
+      .getPublicUrl(filePath);
+
+    const file_url = publicUrlData.publicUrl;
+
+    // Insert metadata into DB
+    const { data, error } = await supabase
+      .from("resources")
+      .insert({
+        user_id,
+        title,
+        type,
+        subject,
+        grade_level: grade_level ? parseInt(grade_level) : null,
+        institution,
+        description,
+        file_url,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("❌ DB insert error:", error.message);
+      return res.status(500).json({ error: "Failed to save resource" });
+    }
+
+    return res.status(201).json({ message: "Upload successful", resource: data });
+  } catch (err: any) {
+    console.error("❌ /resources/upload error:", err.message);
+    return res.status(500).json({ error: "Unexpected server error" });
   }
 });
 

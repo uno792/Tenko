@@ -16,6 +16,11 @@
   color: #666;
 }
 
+.actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
 .uploadBtn {
   background: #800020;
   color: #fff;
@@ -28,4 +33,18 @@
 
 .uploadBtn:hover {
   background: #a00028;
+}
+
+.generateBtn {
+  background: #f3f4f6;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.generateBtn:hover {
+  background: #e5e7eb;
 }
