@@ -1,8 +1,83 @@
-// src/components/AddApplicationModal/AddApplicationModal.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./AddApplicationModal.module.css";
-import { searchPrograms } from "../../services/api";
-import type { Program } from "../../services/api";
+import {
+  getRecommendations,
+  getUniversities,
+  type ProgramRecommendation,
+} from "../../services/api";
+import { useUser } from "../../Users/UserContext";
+
+type ProgramLike = {
+  id: number;
+  name: string;
+  aps_requirement: number | null;
+  application_close: string | null;
+  university_tag: string;
+  website: string | null;
+};
+
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  onAdd: (p: {
+    id: number;
+    name: string;
+    aps_requirement: number | null;
+    application_open: string | null;
+    application_close: string | null;
+    universities: {
+      id?: number;
+      name: string;
+      abbreviation?: string | null;
+      website?: string | null;
+    } | null;
+  }) => void;
+  existingProgramIds: Set<number>;
+  busyProgramId: number | null;
+};
+
+// Build chips from checks
+function buildRequirementChips(rec: ProgramRecommendation): string[] {
+  return (rec.checks || []).map((c) =>
+    c.need ? `${c.tag} ≥ ${c.need}` : c.tag
+  );
+}
+
+// Is the programme already closed?
+function isClosed(dateStr: string | null | undefined): boolean {
+  if (!dateStr) return false; // if unknown, assume not closed
+  const close = new Date(dateStr);
+  const now = new Date();
+  // consider it closed if its date is strictly before today (at end of day)
+  return close.getTime() < now.getTime();
+}
+
+// For sorting: open first; for open, sort soonest closing date first; for closed, sort by most recent close first
+function compareRecommendations(
+  a: ProgramRecommendation,
+  b: ProgramRecommendation
+) {
+  const pa = a.program as ProgramLike;
+  const pb = b.program as ProgramLike;
+
+  const aClosed = isClosed(pa.application_close);
+  const bClosed = isClosed(pb.application_close);
+
+  if (aClosed !== bClosed) return aClosed ? 1 : -1; // open first
+
+  // Both open or both closed: sort by closing date ascending (nulls last)
+  const aTime = pa.application_close
+    ? new Date(pa.application_close).getTime()
+    : Number.POSITIVE_INFINITY;
+  const bTime = pb.application_close
+    ? new Date(pb.application_close).getTime()
+    : Number.POSITIVE_INFINITY;
+
+  if (aTime !== bTime) return aTime - bTime;
+
+  // Tie-breaker: name
+  return pa.name.localeCompare(pb.name);
+}
 
 export default function AddApplicationModal({
   open,
@@ -10,40 +85,59 @@ export default function AddApplicationModal({
   onAdd,
   existingProgramIds,
   busyProgramId,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (p: Program) => void;
-  existingProgramIds: Set<number>;
-  busyProgramId: number | null;
-}) {
-  const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<Program[]>([]);
+}: Props) {
+  const { user } = useUser();
+  const userId = user?.id ?? null;
 
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recs, setRecs] = useState<ProgramRecommendation[]>([]);
+
+  // Load WITS by default, then recommendations
   useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(async () => {
-      setLoading(true);
+    if (!open || !userId) return;
+    (async () => {
       try {
-        const data = await searchPrograms(q);
-        setResults(data);
-      } catch (err) {
-        console.error(err);
-        setResults([]);
+        setLoading(true);
+        const list = await getUniversities();
+        const wits =
+          list.find((u) =>
+            (u.abbreviation ?? "").toUpperCase().includes("WITS")
+          ) ||
+          list.find((u) => /Witwatersrand/i.test(u.name ?? "")) ||
+          list[0];
+        if (wits?.id) {
+          const data = await getRecommendations(userId, wits.id);
+          setRecs(data);
+        } else {
+          setRecs([]);
+        }
+      } catch (e) {
+        console.error(e);
+        setRecs([]);
       } finally {
         setLoading(false);
       }
-    }, 250);
-    return () => clearTimeout(t);
-  }, [q, open]);
+    })();
+  }, [open, userId]);
 
+  // Reset when closed
   useEffect(() => {
     if (!open) {
-      setQ("");
-      setResults([]);
+      setSearch("");
+      setRecs([]);
+      setLoading(false);
     }
   }, [open]);
+
+  // Client-side search + sorting (open first, closed bottom)
+  const list = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? recs.filter((r) => r.program.name.toLowerCase().includes(q))
+      : recs.slice();
+    return filtered.sort(compareRecommendations);
+  }, [recs, search]);
 
   if (!open) return null;
 
@@ -56,6 +150,7 @@ export default function AddApplicationModal({
             className={styles.iconBtn}
             onClick={onClose}
             aria-label="Close"
+            title="Close"
           >
             ✕
           </button>
@@ -63,8 +158,8 @@ export default function AddApplicationModal({
 
         <div className={styles.searchRow}>
           <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by programme name (e.g., 'Computer Science')"
             className={styles.searchInput}
             autoFocus
@@ -77,50 +172,76 @@ export default function AddApplicationModal({
             <div className={styles.skeleton} />
             <div className={styles.skeleton} />
           </div>
-        ) : results.length === 0 ? (
+        ) : list.length === 0 ? (
           <div className={styles.empty}>
-            <p>No programmes found.</p>
+            <p>No programmes match your saved APS for this university.</p>
           </div>
         ) : (
-          <ul className={styles.grid}>
-            {results.map((p) => {
-              const uni = p.universities;
+          <ul className={styles.gridCompact}>
+            {list.map((r) => {
+              const p = r.program as ProgramLike;
               const disabled =
                 existingProgramIds.has(p.id) || busyProgramId === p.id;
+              const closed = isClosed(p.application_close);
+              const chips = buildRequirementChips(r);
+
               return (
-                <li key={p.id} className={styles.card}>
-                  <div className={styles.top}>
+                <li key={p.id} className={styles.cardCompact}>
+                  <div className={styles.rowTop}>
                     <div className={styles.uniRow}>
-                      {uni?.abbreviation ? (
-                        <span className={styles.uniBadge}>
-                          {uni.abbreviation}
+                      <span className={styles.uniBadgeSmall}>
+                        {p.university_tag}
+                      </span>
+                      <span className={styles.name}>{p.name}</span>
+                    </div>
+                    <div className={styles.metaInline}>
+                      <span className={styles.metaItem}>
+                        <strong>APS:</strong> {p.aps_requirement ?? "—"}
+                      </span>
+                      <span className={styles.metaItem}>
+                        <strong>Closes:</strong>{" "}
+                        {p.application_close
+                          ? new Date(p.application_close).toLocaleDateString()
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {chips.length > 0 && (
+                    <div className={styles.reqChipsTight}>
+                      {chips.map((c, i) => (
+                        <span key={i} className={styles.reqChipTight}>
+                          {c}
                         </span>
-                      ) : null}
-                      <span className={styles.uniName}>{uni?.name ?? "—"}</span>
+                      ))}
                     </div>
-                    <div className={styles.name}>{p.name}</div>
-                  </div>
+                  )}
 
-                  <div className={styles.meta}>
-                    <div>
-                      <strong>APS:</strong> {p.aps_requirement ?? "—"}
-                    </div>
-                    <div>
-                      <strong>Closes:</strong>{" "}
-                      {p.application_close
-                        ? new Date(p.application_close).toLocaleDateString()
-                        : "—"}
-                    </div>
-                  </div>
-
-                  <div className={styles.actions}>
+                  <div className={styles.actionsRight}>
                     {existingProgramIds.has(p.id) ? (
                       <span className={styles.already}>Already added</span>
+                    ) : closed ? (
+                      <span className={styles.closedPill} aria-disabled="true">
+                        Closed
+                      </span>
                     ) : (
                       <button
-                        className={styles.primaryBtn}
+                        className={styles.primaryBtnSmall}
                         disabled={disabled}
-                        onClick={() => onAdd(p)}
+                        onClick={() =>
+                          onAdd({
+                            id: p.id,
+                            name: p.name,
+                            aps_requirement: p.aps_requirement,
+                            application_open: null,
+                            application_close: p.application_close,
+                            universities: {
+                              name: p.university_tag,
+                              abbreviation: p.university_tag,
+                              website: p.website ?? undefined,
+                            },
+                          })
+                        }
                       >
                         {busyProgramId === p.id ? "Adding..." : "Add"}
                       </button>

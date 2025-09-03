@@ -1,20 +1,31 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./ApplicationsPage.module.css";
+
 import {
   addApplication,
   deleteApplication,
   getApplications,
   updateApplication,
+  type ApplicationRow,
+  type Program,
 } from "../services/api";
-import type { ApplicationRow, Program } from "../services/api";
+
 import ApplicationCard from "../components/ApplicationCard/ApplicationCard";
 import AddApplicationModal from "../components/AddApplicationModal/AddApplicationModal";
+import ApsCalculatorV2 from "../components/ApsCalculator/ApsCalculatorV2";
 import { useUser } from "../Users/UserContext";
-import LoginRequiredPanel from "../components/LoginRequiredPanel/LoginRequiredPanel";
+
+function daysLeft(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diff = d.getTime() - now.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
 
 export default function ApplicationsPage() {
   const { user } = useUser();
-  const userId = user?.id ?? null;
+  const userId = user?.id;
 
   const [apps, setApps] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,26 +33,18 @@ export default function ApplicationsPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
-    let alive = true;
+    if (!userId) return;
     (async () => {
-      if (!userId) {
-        setApps([]);
-        setLoading(false);
-        return;
-      }
       setLoading(true);
       try {
         const data = await getApplications(userId);
-        if (alive) setApps(data);
+        setApps(data);
       } catch (err) {
         console.error(err);
       } finally {
-        if (alive) setLoading(false);
+        setLoading(false);
       }
     })();
-    return () => {
-      alive = false;
-    };
   }, [userId]);
 
   const existingProgramIds = useMemo(
@@ -50,28 +53,13 @@ export default function ApplicationsPage() {
   );
 
   const handleAdd = async (p: Program) => {
-    if (!userId) {
-      alert("Please sign in to add an application.");
-      return;
-    }
+    if (!userId) return;
     try {
       setBusyId(p.id);
-      const row = await addApplication(userId, p.id);
-      // If the server (for any reason) didn’t include the join, enrich with the Program the user chose
-      const enriched: ApplicationRow = row.program
-        ? row
-        : {
-            ...row,
-            program: {
-              id: p.id,
-              name: p.name,
-              aps_requirement: p.aps_requirement,
-              application_open: p.application_open,
-              application_close: p.application_close,
-              universities: p.universities ?? null,
-            },
-          };
-      setApps((prev) => [enriched, ...prev]);
+      await addApplication(userId, p.id);
+      // refetch to hydrate program join
+      const fresh = await getApplications(userId);
+      setApps(fresh);
     } catch (err) {
       console.error(err);
       alert("Failed to add application");
@@ -93,35 +81,41 @@ export default function ApplicationsPage() {
     }
   };
 
-  const handleMarkApplied = async (id: number) => {
-    const prev = apps;
-    setApps((xs) =>
-      xs.map((x) => (x.id === id ? { ...x, status: "submitted" } : x))
-    );
+  const handleMarkApplied = useCallback(async (id: number) => {
     try {
-      await updateApplication(id, { status: "submitted" });
-    } catch (err) {
-      console.error(err);
-      alert("Failed to mark as applied. Restoring previous state.");
-      setApps(prev);
+      const updated = await updateApplication(id, { status: "submitted" });
+      setApps((xs) =>
+        xs.map((x) => (x.id === id ? { ...x, status: updated.status } : x))
+      );
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update application");
     }
-  };
+  }, []);
 
-  if (!userId) {
-    return (
-      <div className={styles.wrap}>
-        <header className={styles.header}>
-          <div>
-            <h1 className={styles.title}>University Application Hub</h1>
-            <p className={styles.subtitle}>
-              Sign in to start tracking your applications, deadlines, and APS.
-            </p>
-          </div>
-        </header>
-        <LoginRequiredPanel />
-      </div>
-    );
-  }
+  const handleApplyNow = useCallback((website?: string | null) => {
+    if (!website) return;
+    window.open(website, "_blank", "noopener,noreferrer");
+  }, []);
+
+  const upcoming = useMemo(
+    () =>
+      apps
+        .filter((a) => a.status === "planning")
+        .map((a) => {
+          const when = a.deadline ?? a.program?.application_close ?? null;
+          return {
+            id: a.id,
+            name: a.program?.name ?? "Programme",
+            when,
+            left: daysLeft(when),
+          };
+        })
+        .filter((x) => x.when)
+        .sort((a, b) => (a.when! < b.when! ? -1 : 1))
+        .slice(0, 6),
+    [apps]
+  );
 
   return (
     <div className={styles.wrap}>
@@ -132,16 +126,19 @@ export default function ApplicationsPage() {
             Your complete guide to SA applications, requirements, and deadlines.
           </p>
         </div>
+        {/* ⛔️ Removed the top-left Add button per your request */}
       </header>
 
       <div className={styles.grid}>
-        <section className={styles.card}>
-          <div className={styles.cardHead}>
+        {/* Left: slim, rectangular APS calculator */}
+        <section className={`${styles.card} ${styles.slimCard}`}>
+          <div className={styles.cardHeadTight}>
             <h2 className={styles.cardTitle}>APS Calculator</h2>
           </div>
-          <p className={styles.muted}>Plug in your existing APS inputs here.</p>
+          <ApsCalculatorV2 compact />
         </section>
 
+        {/* Middle: Applications */}
         <section className={styles.card}>
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Applications</h2>
@@ -176,6 +173,9 @@ export default function ApplicationsPage() {
                   key={a.id}
                   app={a}
                   onRemove={() => handleRemove(a.id)}
+                  onApplyNow={() =>
+                    handleApplyNow(a.program?.universities?.website)
+                  }
                   onMarkApplied={() => handleMarkApplied(a.id)}
                 />
               ))}
@@ -183,34 +183,35 @@ export default function ApplicationsPage() {
           )}
         </section>
 
-        {/* Deadlines: hide submitted */}
+        {/* Right: Upcoming Deadlines with days left */}
         <section className={styles.card}>
           <div className={styles.cardHead}>
             <h2 className={styles.cardTitle}>Upcoming Deadlines</h2>
           </div>
-          <ul className={styles.deadlines}>
-            {apps
-              .filter((a) => a.status !== "submitted")
-              .map((a) => ({
-                id: a.id,
-                name: a.program?.name ?? "Programme",
-                when: a.deadline ?? a.program?.application_close ?? null,
-              }))
-              .filter((x) => x.when)
-              .sort((a, b) => (a.when! < b.when! ? -1 : 1))
-              .slice(0, 5)
-              .map((d) => (
+          {upcoming.length === 0 ? (
+            <div className={styles.emptySmall}>Nothing coming up.</div>
+          ) : (
+            <ul className={styles.deadlines}>
+              {upcoming.map((d) => (
                 <li key={d.id} className={styles.deadlineItem}>
                   <span className={styles.dot} />
-                  <div>
+                  <div className={styles.deadlineMain}>
                     <div className={styles.deadlineName}>{d.name}</div>
                     <div className={styles.deadlineDate}>
                       {new Date(d.when!).toLocaleDateString()}
                     </div>
                   </div>
+                  <span className={styles.daysChip}>
+                    {d.left === null
+                      ? "—"
+                      : d.left >= 0
+                      ? `${d.left} days left`
+                      : "Closed"}
+                  </span>
                 </li>
               ))}
-          </ul>
+            </ul>
+          )}
         </section>
       </div>
 

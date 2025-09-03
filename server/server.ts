@@ -535,6 +535,332 @@ router.post("/ingest/events", async (req, res) => {
   }
 });
 
+router.get("/universities", async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("universities")
+      .select("id,name,abbreviation,website")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (err: any) {
+    console.error("❌ GET /universities error:", err.message);
+    res.status(500).json({ error: "Failed to fetch universities" });
+  }
+});
+
+// ==============================
+// SUBJECTS (for dropdowns)
+// ==============================
+router.get("/subjects", async (req, res) => {
+  try {
+    let q = supabase.from("subjects").select("id,name").order("name", { ascending: true });
+    const search = (req.query.search as string | undefined)?.trim();
+    if (search) q = q.ilike("name", `%${search}%`);
+    const { data, error } = await q;
+    if (error) throw error;
+    res.json(data);
+  } catch (e: any) {
+    console.error("❌ GET /subjects", e.message);
+    res.status(500).json({ error: "Failed to fetch subjects" });
+  }
+});
+
+// ==============================
+// APS PROFILES (load + save)
+// ==============================
+// GET /aps/profile?user_id=...&university_id=...
+router.get("/aps/profile", async (req, res) => {
+  try {
+    const user_id = (req.query.user_id as string)?.trim();
+    const university_id = Number(req.query.university_id);
+    if (!user_id || !university_id) return res.status(400).json({ error: "user_id and university_id required" });
+
+    // find current profile
+    const { data: profile, error: pErr } = await supabase
+      .from("user_aps_profiles")
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("university_id", university_id)
+      .eq("is_current", true)
+      .maybeSingle();
+    if (pErr) throw pErr;
+
+    if (!profile) return res.json({ profile: null, subjects: [] });
+
+    const { data: rows, error: rErr } = await supabase
+      .from("user_aps_profile_subjects")
+      .select("id,profile_id,kind,maths_stream,subject_id,band_key,aps_points,position")
+      .eq("profile_id", profile.id)
+      .order("kind", { ascending: true })
+      .order("position", { ascending: true });
+    if (rErr) throw rErr;
+
+    res.json({ profile, subjects: rows });
+  } catch (e: any) {
+    console.error("❌ GET /aps/profile", e.message);
+    res.status(500).json({ error: "Failed to load profile" });
+  }
+});
+
+// POST /aps/profile
+// { user_id, university_id, total_aps, rows: [{kind,maths_stream?,subject_id?,band_key,aps_points,position}] }
+router.post("/aps/profile", async (req, res) => {
+  try {
+    const { user_id, university_id, total_aps, rows } = req.body as {
+      user_id: string;
+      university_id: number;
+      total_aps: number;
+      rows: Array<{
+        kind: "home_language" | "mathematics" | "life_orientation" | "additional_language" | "other";
+        maths_stream?: "mathematics" | "maths_literacy";
+        subject_id?: number | null;
+        band_key: "90-100" | "80-89" | "70-79" | "60-69" | "50-59" | "40-49" | "30-39" | "0-29";
+        aps_points: number;
+        position: number; // 0 for fixed; 1..3 for 'other'
+      }>;
+    };
+
+    if (!user_id || !university_id || typeof total_aps !== "number" || !Array.isArray(rows)) {
+      return res.status(400).json({ error: "Invalid body" });
+    }
+
+    // upsert profile (current)
+    const { data: existing, error: selErr } = await supabase
+      .from("user_aps_profiles")
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("university_id", university_id)
+      .eq("is_current", true)
+      .maybeSingle();
+    if (selErr) throw selErr;
+
+    let profileId: number;
+
+    if (!existing) {
+      const { data: ins, error: insErr } = await supabase
+        .from("user_aps_profiles")
+        .insert({ user_id, university_id, total_aps, is_current: true })
+        .select("*")
+        .single();
+      if (insErr) throw insErr;
+      profileId = ins.id as number;
+    } else {
+      const { data: upd, error: updErr } = await supabase
+        .from("user_aps_profiles")
+        .update({ total_aps })
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      if (updErr) throw updErr;
+      profileId = upd.id as number;
+    }
+
+    // replace all rows for this profile
+    const { error: delErr } = await supabase
+      .from("user_aps_profile_subjects")
+      .delete()
+      .eq("profile_id", profileId);
+    if (delErr) throw delErr;
+
+    const payload = rows.map((r) => ({
+      profile_id: profileId,
+      kind: r.kind,
+      maths_stream: r.maths_stream ?? null,
+      subject_id: r.subject_id ?? null,
+      band_key: r.band_key,
+      aps_points: r.aps_points,
+      position: r.position,
+    }));
+
+    const { data: inserted, error: rowsErr } = await supabase
+      .from("user_aps_profile_subjects")
+      .insert(payload)
+      .select("*");
+    if (rowsErr) throw rowsErr;
+
+    res.status(200).json({ ok: true, profile_id: profileId, subjects_saved: inserted.length });
+  } catch (e: any) {
+    console.error("❌ POST /aps/profile", e.message);
+    res.status(500).json({ error: "Failed to save profile" });
+  }
+});
+
+// ==============================
+// Universities list (for the calculator)
+// ==============================
+router.get("/universities", async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("universities")
+      .select("id,name,abbreviation,website")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (e: any) {
+    console.error("❌ GET /universities", e.message);
+    res.status(500).json({ error: "Failed to fetch universities" });
+  }
+});
+
+/**
+ * GET /recommendations?user_id=...&university_id=...
+ * Returns programmes where user meets APS and subject minima.
+ */
+router.get("/recommendations", async (req, res) => {
+  try {
+    const user_id = (req.query.user_id as string)?.trim();
+    const university_id = Number(req.query.university_id);
+    if (!user_id || !university_id) {
+      return res.status(400).json({ error: "user_id and university_id required" });
+    }
+
+    // Load current profile + rows
+    const { data: profile, error: pErr } = await supabase
+      .from("user_aps_profiles")
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("university_id", university_id)
+      .eq("is_current", true)
+      .maybeSingle();
+    if (pErr) throw pErr;
+    if (!profile) return res.json([]);
+
+    const { data: rows, error: rErr } = await supabase
+      .from("user_aps_profile_subjects")
+      .select("kind, band_key, aps_points, maths_stream")
+      .eq("profile_id", profile.id);
+    if (rErr) throw rErr;
+
+    // Pull programmes for this university with requirement minima
+    const { data: programs, error: progErr } = await supabase
+      .from("programs")
+      .select(`
+        id, name, aps_requirement, application_close, points_model,
+        min_home_language_level, min_home_language_percent,
+        min_first_additional_language_level, min_first_additional_language_percent,
+        min_mathematics_level, min_mathematics_percent,
+        min_physical_sciences_level, min_physical_sciences_percent,
+        requirement_notes,
+        universities:universities(name,abbreviation,website)
+      `)
+      .eq("university_id", university_id)
+      .order("name", { ascending: true });
+    if (progErr) throw progErr;
+
+    // Helper: turn our band into level & percent for checks
+    const bandToPercent = (band: string) => {
+      switch (band) {
+        case "90-100": return 90;
+        case "80-89":  return 80;
+        case "70-79":  return 70;
+        case "60-69":  return 60;
+        case "50-59":  return 50;
+        case "40-49":  return 40;
+        case "30-39":  return 30;
+        default:       return 0;
+      }
+    };
+    // Approximate NSC level mapping by band midpoints (good enough for screening)
+    const bandToLevel = (band: string) => {
+      switch (band) {
+        case "90-100": return 7;
+        case "80-89":  return 7;
+        case "70-79":  return 6;
+        case "60-69":  return 5;
+        case "50-59":  return 4;
+        case "40-49":  return 3;
+        case "30-39":  return 2;
+        default:       return 1;
+      }
+    };
+
+    const findRow = (kind: string) => rows.find(r => r.kind === kind);
+
+    const results = programs.map((p: any) => {
+      const hl = findRow("home_language");
+      const al = findRow("additional_language");
+      const mz = findRow("mathematics"); // includes maths_literacy in stream if needed
+      const lo = findRow("life_orientation");
+
+      const aps_ok = !p.aps_requirement || (profile.total_aps ?? 0) >= p.aps_requirement;
+
+      // Build subject checks
+      const checks: Array<{ tag: string; ok: boolean; need?: string; has?: string }> = [];
+
+      // HL
+      if (p.min_home_language_level || p.min_home_language_percent) {
+        const hasLevel = hl ? bandToLevel(hl.band_key) : 0;
+        const hasPct = hl ? bandToPercent(hl.band_key) : 0;
+        const need = (p.min_home_language_level ? `L${p.min_home_language_level}` : "")
+          + (p.min_home_language_percent ? `${p.min_home_language_level ? " / " : ""}${p.min_home_language_percent}%` : "");
+        const ok = (!p.min_home_language_level || hasLevel >= p.min_home_language_level) &&
+                   (!p.min_home_language_percent || hasPct >= p.min_home_language_percent);
+        checks.push({ tag: "HL", ok, need, has: `L${hasLevel}` });
+      }
+
+      // AL (FAL)
+      if (p.min_first_additional_language_level || p.min_first_additional_language_percent) {
+        const hasLevel = al ? bandToLevel(al.band_key) : 0;
+        const hasPct = al ? bandToPercent(al.band_key) : 0;
+        const need = (p.min_first_additional_language_level ? `L${p.min_first_additional_language_level}` : "")
+          + (p.min_first_additional_language_percent ? `${p.min_first_additional_language_level ? " / " : ""}${p.min_first_additional_language_percent}%` : "");
+        const ok = (!p.min_first_additional_language_level || hasLevel >= p.min_first_additional_language_level) &&
+                   (!p.min_first_additional_language_percent || hasPct >= p.min_first_additional_language_percent);
+        checks.push({ tag: "FAL", ok, need, has: `L${hasLevel}` });
+      }
+
+      // Mathematics (treat both Maths and Maths Lit as “maths” minimums; you can split if programmes distinguish)
+      if (p.min_mathematics_level || p.min_mathematics_percent) {
+        const hasLevel = mz ? bandToLevel(mz.band_key) : 0;
+        const hasPct = mz ? bandToPercent(mz.band_key) : 0;
+        const need = (p.min_mathematics_level ? `L${p.min_mathematics_level}` : "")
+          + (p.min_mathematics_percent ? `${p.min_mathematics_level ? " / " : ""}${p.min_mathematics_percent}%` : "");
+        const ok = (!p.min_mathematics_level || hasLevel >= p.min_mathematics_level) &&
+                   (!p.min_mathematics_percent || hasPct >= p.min_mathematics_percent);
+        checks.push({ tag: mz?.maths_stream === "maths_literacy" ? "Maths Lit" : "Maths", ok, need, has: `L${hasLevel}` });
+      }
+
+      // Physical Sciences
+      if (p.min_physical_sciences_level || p.min_physical_sciences_percent) {
+        // Look for any “other” set to a science band — we didn’t save subject_id names here, so just reflect minimum
+        // If you want a strict check, extend the profile rows to include subject_id for “other” and match by name/id = Physical Sciences.
+        // For now treat as “if user entered a band for Physical Sciences in OTHER rows”. Not available here -> mark as unknown(false).
+        const ok = false; // unknown unless you store and match the subject_id == "Physical Sciences"
+        checks.push({
+          tag: "Physical Sci",
+          ok,
+          need: (p.min_physical_sciences_level ? `L${p.min_physical_sciences_level}` : "") +
+                (p.min_physical_sciences_percent ? `${p.min_physical_sciences_level ? " / " : ""}${p.min_physical_sciences_percent}%` : "")
+        });
+      }
+
+      const all_ok = aps_ok && checks.every(c => c.ok !== false); // unknown treated as false
+      return {
+        program: {
+          id: p.id,
+          name: p.name,
+          aps_requirement: p.aps_requirement,
+          application_close: p.application_close,
+          university_tag: p.universities?.abbreviation || p.universities?.name || "",
+          website: p.universities?.website || null,
+          requirement_notes: p.requirement_notes,
+        },
+        aps_ok,
+        checks,
+        score: (aps_ok ? 1 : 0) + checks.filter(c => c.ok).length, // simple ranking
+      };
+    });
+
+    // Rank by score desc, then name
+    results.sort((a, b) => b.score - a.score || a.program.name.localeCompare(b.program.name));
+    res.json(results);
+  } catch (e: any) {
+    console.error("❌ GET /recommendations", e.message);
+    res.status(500).json({ error: "Failed to compute recommendations" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });

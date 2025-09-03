@@ -9,6 +9,7 @@ function daysLeft(dateStr: string | null | undefined) {
   const diff = d.getTime() - now.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
+
 function chipColor(days: number | null) {
   if (days === null) return "#9b9b9b";
   if (days <= 7) return "#b00020";
@@ -19,20 +20,20 @@ function chipColor(days: number | null) {
 export default function ApplicationCard({
   app,
   onRemove,
+  onApplyNow,
   onMarkApplied,
 }: {
   app: ApplicationRow;
   onRemove: () => void;
+  onApplyNow: () => void;
   onMarkApplied: () => void;
 }) {
   const uni = app.program?.universities;
-  const website = uni?.website || null;
   const deadline = app.deadline ?? app.program?.application_close ?? null;
   const left = daysLeft(deadline);
+  const [prompt, setPrompt] = useState(false);
 
-  // local footer state: when user clicks "Apply now", show choice buttons
-  const [choose, setChoose] = useState(false);
-  const showAppliedBadge = app.status === "submitted";
+  const showPrompt = app.status === "planning" && prompt;
 
   return (
     <li className={styles.card}>
@@ -69,41 +70,33 @@ export default function ApplicationCard({
           Remove
         </button>
 
-        {showAppliedBadge ? (
-          <span className={styles.appliedPill}>Applied</span>
-        ) : choose ? (
-          <div className={styles.choiceRow}>
-            <button
-              className={styles.secondaryBtn}
-              onClick={() => setChoose(false)}
-            >
+        {app.status === "planning" && !showPrompt && (
+          <button
+            className={styles.primaryBtn}
+            onClick={() => {
+              onApplyNow();
+              setPrompt(true);
+            }}
+          >
+            Apply now →
+          </button>
+        )}
+
+        {showPrompt && (
+          <>
+            <button className={styles.ghost} onClick={() => setPrompt(false)}>
               Later
             </button>
             <button
-              className={styles.primaryBtnSmall}
-              onClick={() => {
-                onMarkApplied();
-                setChoose(false);
+              className={styles.primaryBtn}
+              onClick={async () => {
+                await onMarkApplied();
+                setPrompt(false);
               }}
             >
-              Applied
+              Applied ✓
             </button>
-          </div>
-        ) : website ? (
-          // Open new tab AND flip into choice mode
-          <a
-            href={website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.applyBtn}
-            onClick={() => setChoose(true)}
-          >
-            Apply now →
-          </a>
-        ) : (
-          <button className={`${styles.applyBtn} ${styles.disabled}`} disabled>
-            Apply now →
-          </button>
+          </>
         )}
       </div>
     </li>
