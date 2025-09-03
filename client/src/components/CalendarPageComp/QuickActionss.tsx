@@ -1,6 +1,6 @@
 import React from "react";
 import { FaPlus, FaCalculator, FaUserFriends } from "react-icons/fa";
-import styles from "./Sidebar.module.css";
+import styles from "./SideBar.module.css";
 
 const QuickActions: React.FC = () => {
   return (
