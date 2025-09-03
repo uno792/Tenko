@@ -425,6 +425,40 @@ router.put("/profile/:userId", async (req, res) => {
   const { username, email, phone, institution, grade_year, bio } = req.body;
 
   try {
+    console.log("➡️ Updating profile for:", userId, "with data:", req.body);
+
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        username,
+        email,
+        phone,
+        institution,
+        grade_year,
+        bio,
+      })
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("❌ Supabase update error:", error.message, error.details);
+      return res.status(400).json({ error: error.message, details: error.details });
+    }
+
+    console.log("✅ Updated profile:", data);
+    return res.json(data);
+  } catch (err: any) {
+    console.error("❌ Profile update error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/*router.put("/profile/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { username, email, phone, institution, grade_year, bio } = req.body;
+
+  try {
     const { data, error } = await supabase
       .from("users")
       .update({
@@ -447,7 +481,7 @@ router.put("/profile/:userId", async (req, res) => {
     console.error("❌ Profile update error:", err.message);
     return res.status(500).json({ error: err.message });
   }
-});
+});*/
 
 /* ============================
    Tutor Routes
