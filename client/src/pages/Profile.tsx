@@ -3,6 +3,7 @@ import styles from "./profile.module.css";
 import EditProfileForm from "../components/Profile/EditProfileForm";
 import BecomeTutorForm from "../components/Profile/BecomeTutorForm";
 import { useUser } from "../Users/UserContext"; // ✅ import context
+import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL; // ✅ use env var
 
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const [showTutorForm, setShowTutorForm] = useState(false);
   const [isTutor, setIsTutor] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const navigate = useNavigate();
 
   /* ============================
      Fetch Profile (Reusable)
@@ -32,6 +34,11 @@ export default function ProfilePage() {
       console.error("❌ Fetch profile failed:", err);
     }
   };
+  useEffect(() => {
+    if (!userId) {
+      navigate("/login", { replace: true });
+    }
+  }, [userId, navigate]);
 
   // Fetch on page load and when user changes
   useEffect(() => {
@@ -111,7 +118,10 @@ export default function ProfilePage() {
             Manage your personal information and preferences
           </p>
         </div>
-        <button className={styles.editButton} onClick={() => setIsEditing(true)}>
+        <button
+          className={styles.editButton}
+          onClick={() => setIsEditing(true)}
+        >
           Edit Profile
         </button>
       </div>
@@ -126,18 +136,26 @@ export default function ProfilePage() {
           </div>
           <div className={styles.info}>
             <p>
-              <strong>Full Name</strong><br />{profile.username}
+              <strong>Full Name</strong>
+              <br />
+              {profile.username}
             </p>
             <p>
-              <strong>Phone Number</strong><br />{profile.phone || "—"}
+              <strong>Phone Number</strong>
+              <br />
+              {profile.phone || "—"}
             </p>
           </div>
           <div className={styles.info}>
             <p>
-              <strong>Email</strong><br />{profile.email || "—"}
+              <strong>Email</strong>
+              <br />
+              {profile.email || "—"}
             </p>
             <p>
-              <strong>Bio</strong><br />{profile.bio || "—"}
+              <strong>Bio</strong>
+              <br />
+              {profile.bio || "—"}
             </p>
           </div>
         </div>
@@ -147,9 +165,21 @@ export default function ProfilePage() {
       <section className={styles.card}>
         <h2 className={styles.sectionTitle}>Academic Information</h2>
         <div className={styles.academicGrid}>
-          <p><strong>Institution</strong><br />{profile.institution || "—"}</p>
-          <p><strong>Grade/Year</strong><br />{profile.grade_year || "—"}</p>
-          <p><strong>Member Since</strong><br />{new Date(profile.created_at).toLocaleDateString()}</p>
+          <p>
+            <strong>Institution</strong>
+            <br />
+            {profile.institution || "—"}
+          </p>
+          <p>
+            <strong>Grade/Year</strong>
+            <br />
+            {profile.grade_year || "—"}
+          </p>
+          <p>
+            <strong>Member Since</strong>
+            <br />
+            {new Date(profile.created_at).toLocaleDateString()}
+          </p>
         </div>
       </section>
 
@@ -158,16 +188,32 @@ export default function ProfilePage() {
         <h2 className={styles.sectionTitle}>Tutoring</h2>
         {profile.tutor ? (
           <div>
-            <p><strong>Subjects:</strong> {profile.tutor.subjects?.join(", ") || "—"}</p>
-            <p><strong>Rate per Hour:</strong> {profile.tutor.rate_per_hour || "—"}</p>
-            <p><strong>Availability:</strong> {profile.tutor.availability || "—"}</p>
-            <p><strong>Grade Levels:</strong> {profile.tutor.grade_levels?.join(", ") || "—"}</p>
+            <p>
+              <strong>Subjects:</strong>{" "}
+              {profile.tutor.subjects?.join(", ") || "—"}
+            </p>
+            <p>
+              <strong>Rate per Hour:</strong>{" "}
+              {profile.tutor.rate_per_hour || "—"}
+            </p>
+            <p>
+              <strong>Availability:</strong> {profile.tutor.availability || "—"}
+            </p>
+            <p>
+              <strong>Grade Levels:</strong>{" "}
+              {profile.tutor.grade_levels?.join(", ") || "—"}
+            </p>
           </div>
         ) : (
           <>
-            <p>Share your knowledge and help other students succeed by becoming a tutor.</p>
+            <p>
+              Share your knowledge and help other students succeed by becoming a
+              tutor.
+            </p>
             <button
-              className={`${styles.tutorButton} ${isTutor ? styles.tutorActive : ""}`}
+              className={`${styles.tutorButton} ${
+                isTutor ? styles.tutorActive : ""
+              }`}
               onClick={() => !isTutor && setShowTutorForm(true)}
             >
               {isTutor ? "✔ Tutor" : "Become a Tutor"}
