@@ -1,12 +1,12 @@
 import supabase from "./supabaseClient";
 import express from "express";
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 import cors from "cors";
 import { readFile } from "node:fs/promises";
 import { fetchText } from "./scripts/lib/fetchers";
 import { llmExtract } from "./scripts/lib/llm";
 import { upsertEvents } from "./scripts/lib/supabase";
-import path from "node:path"; 
+import path from "node:path";
 import multer from "multer"; // middleware for handling file uploads
 import { v4 as uuidv4 } from "uuid";
 
@@ -47,24 +47,22 @@ assertServiceRole();
 
 // getting names to display
 router.get("/names", async (req, res) => {
-  const { data, error } = await supabase
-    .from("users")
-    .select("username"); 
+  const { data, error } = await supabase.from("users").select("username");
 
   if (error) {
     console.error("❌ Supabase error:", error.message);
     return res.status(500).json({ error: error.message });
   }
 
-  return res.status(200).json(data); 
+  return res.status(200).json(data);
 });
 //checking if ID exists alreayd
 router.get("/checkID", async (req, res) => {
-  const {user_id}=req.query;
+  const { user_id } = req.query;
   const { data, error } = await supabase
     .from("users")
     .select("user_id")
-    .eq("user_id",user_id);
+    .eq("user_id", user_id);
 
   if (error) {
     console.error("❌ Supabase error:", error.message);
@@ -78,22 +76,20 @@ router.get("/checkID", async (req, res) => {
 //adding user to the DB
 router.post("/addUser", async (req, res) => {
   console.log("BODY /addUser:", req.body); // should log { user_id, username }
-  const {user_id,username}=req.body;
+  const { user_id, username } = req.body;
   if (!user_id || !username) {
     return res.status(400).json({ error: "user_id and username are required" });
   }
   const { data, error } = await supabase
     .from("users")
-    .insert({user_id,username})
-    .select('*')
+    .insert({ user_id, username })
+    .select("*")
     .single();
 
   if (error) {
     console.error("❌ Supabase error:", error.message);
     return res.status(500).json({ error: error.message });
   }
-
-  
 
   return res.status(200).json({ data });
 });
@@ -131,7 +127,9 @@ router.patch("/resources/:id/upvote", async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "Invalid resource ID" });
 
-    const { error } = await supabase.rpc("increment_upvotes", { resource_id: id });
+    const { error } = await supabase.rpc("increment_upvotes", {
+      resource_id: id,
+    });
     if (error) throw error;
 
     return res.status(200).json({ message: "Upvote added" });
@@ -147,7 +145,9 @@ router.patch("/resources/:id/download", async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ error: "Invalid resource ID" });
 
-    const { error } = await supabase.rpc("increment_downloads", { resource_id: id });
+    const { error } = await supabase.rpc("increment_downloads", {
+      resource_id: id,
+    });
     if (error) throw error;
 
     return res.status(200).json({ message: "Download incremented" });
@@ -160,51 +160,53 @@ router.patch("/resources/:id/download", async (req: Request, res: Response) => {
 // ==============================
 // NEW: Get top contributors
 // ==============================
-router.get("/resources/top-contributors", async (req: Request, res: Response) => {
-  try {
-    const limit = Number(req.query.limit) || 5;
+router.get(
+  "/resources/top-contributors",
+  async (req: Request, res: Response) => {
+    try {
+      const limit = Number(req.query.limit) || 5;
 
-    // Query with user join
-    const { data, error } = await supabase
-      .from("resources")
-      .select("user_id, upvotes, downloads, users(username)")
-      .order("upvotes", { ascending: false });
+      // Query with user join
+      const { data, error } = await supabase
+        .from("resources")
+        .select("user_id, upvotes, downloads, users(username)")
+        .order("upvotes", { ascending: false });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    // Aggregate by user
-    const contributors: Record<
-      string,
-      { username: string; uploads: number; downloads: number; points: number }
-    > = {};
+      // Aggregate by user
+      const contributors: Record<
+        string,
+        { username: string; uploads: number; downloads: number; points: number }
+      > = {};
 
-    (data || []).forEach((r: any) => {
-      if (!r.user_id) return;
-      if (!contributors[r.user_id]) {
-        contributors[r.user_id] = {
-          username: (r.users as any)?.username || "Unknown", // 👈 cast to any to silence TS
-          uploads: 0,
-          downloads: 0,
-          points: 0,
-        };
-      }
-      contributors[r.user_id].uploads += 1;
-      contributors[r.user_id].downloads += r.downloads || 0;
-      contributors[r.user_id].points += r.upvotes || 0;
-    });
+      (data || []).forEach((r: any) => {
+        if (!r.user_id) return;
+        if (!contributors[r.user_id]) {
+          contributors[r.user_id] = {
+            username: (r.users as any)?.username || "Unknown", // 👈 cast to any to silence TS
+            uploads: 0,
+            downloads: 0,
+            points: 0,
+          };
+        }
+        contributors[r.user_id].uploads += 1;
+        contributors[r.user_id].downloads += r.downloads || 0;
+        contributors[r.user_id].points += r.upvotes || 0;
+      });
 
-    // Sort by points
-    const sorted = Object.values(contributors)
-      .sort((a, b) => b.points - a.points)
-      .slice(0, limit);
+      // Sort by points
+      const sorted = Object.values(contributors)
+        .sort((a, b) => b.points - a.points)
+        .slice(0, limit);
 
-    res.json(sorted);
-  } catch (err: any) {
-    console.error("❌ GET /resources/top-contributors error:", err.message);
-    res.status(500).json({ error: "Failed to fetch top contributors" });
+      res.json(sorted);
+    } catch (err: any) {
+      console.error("❌ GET /resources/top-contributors error:", err.message);
+      res.status(500).json({ error: "Failed to fetch top contributors" });
+    }
   }
-});
-
+);
 
 // ==============================
 // NEW: Get stats for a user
@@ -256,8 +258,6 @@ router.get("/resources/stats", async (req: Request, res: Response) => {
   }
 });
 
-
-
 // ==============================
 // NEW: Get resources (with optional filters)
 // ==============================
@@ -308,20 +308,31 @@ router.get("/resources", async (req: Request, res: Response) => {
   }
 });
 
-
-
 /**
  * POST /resources/upload
  * Handles file upload + DB insert
  */
 router.post("/resources/upload", upload.single("file"), async (req, res) => {
   try {
-    const { user_id, title, type, subject, grade_level, institution, description } = req.body;
+    const {
+      user_id,
+      title,
+      type,
+      subject,
+      grade_level,
+      institution,
+      description,
+    } = req.body;
     const file = req.file;
 
     // 🐞 Debugging log
     console.log("📥 Upload request body:", req.body);
-    console.log("📎 File info:", file?.originalname, file?.mimetype, file?.size);
+    console.log(
+      "📎 File info:",
+      file?.originalname,
+      file?.mimetype,
+      file?.size
+    );
 
     if (!file) {
       return res.status(400).json({ error: "File is required" });
@@ -375,7 +386,9 @@ router.post("/resources/upload", upload.single("file"), async (req, res) => {
       return res.status(500).json({ error: "Failed to save resource" });
     }
 
-    return res.status(201).json({ message: "Upload successful", resource: data });
+    return res
+      .status(201)
+      .json({ message: "Upload successful", resource: data });
   } catch (err: any) {
     console.error("❌ /resources/upload error:", err.message);
     return res.status(500).json({ error: "Unexpected server error" });
@@ -444,7 +457,9 @@ router.put("/profile/:userId", async (req, res) => {
 
     if (error) {
       console.error("❌ Supabase update error:", error.message, error.details);
-      return res.status(400).json({ error: error.message, details: error.details });
+      return res
+        .status(400)
+        .json({ error: error.message, details: error.details });
     }
 
     console.log("✅ Updated profile:", data);
@@ -490,13 +505,14 @@ router.put("/profile/:userId", async (req, res) => {
 
 // Create tutor record
 router.post("/tutor", async (req, res) => {
-  const { user_id, subjects, bio, rate_per_hour, availability, grade_levels } = req.body;
+  const { user_id, subjects, bio, rate_per_hour, availability, grade_levels } =
+    req.body;
 
   try {
     const { data, error } = await supabase
       .from("tutors")
       .insert([
-        { user_id, subjects, bio, rate_per_hour, availability, grade_levels }
+        { user_id, subjects, bio, rate_per_hour, availability, grade_levels },
       ])
       .select()
       .single();
@@ -546,7 +562,7 @@ router.put("/tutor/:userId", async (req, res) => {
         bio,
         rate_per_hour,
         availability,
-        grade_levels
+        grade_levels,
       })
       .eq("user_id", userId)
       .select()
@@ -562,7 +578,6 @@ router.put("/tutor/:userId", async (req, res) => {
   }
 });
 
-
 /* =========================
    NEW: APPLICATIONS CRUD
    - GET /applications?user_id=...
@@ -571,82 +586,81 @@ router.put("/tutor/:userId", async (req, res) => {
    - DELETE /applications/:id
    - PATCH /applications/:id { status?, deadline?, notes? }
    ========================= */
-   router.get("/applications", async (req, res) => {
-    try {
-      const user_id = (req.query.user_id as string | undefined)?.trim();
-      if (!user_id) {
-        return res.status(400).json({ error: "user_id is required" });
-      }
-  
-      const { data, error } = await supabase
-        .from("applications")
-        .select(
-          // ⬇️ add website here
-          "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
-        )
-        .eq("user_id", user_id)
-        .order("created_at", { ascending: false });
-  
-      if (error) throw error;
-      return res.status(200).json(data);
-    } catch (err: any) {
-      console.error("❌ /applications error:", err.message);
-      return res.status(500).json({ error: "Failed to fetch applications" });
+router.get("/applications", async (req, res) => {
+  try {
+    const user_id = (req.query.user_id as string | undefined)?.trim();
+    if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
     }
-  });
 
-  router.post("/applications", async (req, res) => {
-    try {
-      const { user_id, program_id } = req.body as {
-        user_id?: string;
-        program_id?: number;
-      };
-      if (!user_id || !program_id) {
-        return res
-          .status(400)
-          .json({ error: "user_id and program_id are required" });
-      }
-  
-      // look up program close date
-      const { data: prog, error: pErr } = await supabase
-        .from("programs")
-        .select("id,application_close")
-        .eq("id", program_id)
-        .single();
-      if (pErr) throw pErr;
-  
-      const deadline = prog?.application_close ?? null;
-  
-      // 1) Insert minimal row to get the new id
-      const { data: inserted, error: insErr } = await supabase
-        .from("applications")
-        .insert({
-          user_id,
-          program_id,
-          status: "planning",
-          deadline,
-        })
-        .select("id,user_id,program_id,status,deadline,submitted_at,notes")
-        .single();
-      if (insErr) throw insErr;
-  
-      // 2) Re-select with joins so the client immediately gets program + university website
-      const { data: joined, error: joinErr } = await supabase
-        .from("applications")
-        .select(
-          "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
-        )
-        .eq("id", inserted.id)
-        .single();
-      if (joinErr) throw joinErr;
-  
-      return res.status(201).json(joined);
-    } catch (err: any) {
-      console.error("❌ POST /applications error:", err.message);
-      return res.status(500).json({ error: "Failed to create application" });
+    const { data, error } = await supabase
+      .from("applications")
+      .select(
+        // ⬇️ add website here
+        "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
+      )
+      .eq("user_id", user_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err: any) {
+    console.error("❌ /applications error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch applications" });
+  }
+});
+
+router.post("/applications", async (req, res) => {
+  try {
+    const { user_id, program_id } = req.body as {
+      user_id?: string;
+      program_id?: number;
+    };
+    if (!user_id || !program_id) {
+      return res
+        .status(400)
+        .json({ error: "user_id and program_id are required" });
     }
-  });
-  
+
+    // look up program close date
+    const { data: prog, error: pErr } = await supabase
+      .from("programs")
+      .select("id,application_close")
+      .eq("id", program_id)
+      .single();
+    if (pErr) throw pErr;
+
+    const deadline = prog?.application_close ?? null;
+
+    // 1) Insert minimal row to get the new id
+    const { data: inserted, error: insErr } = await supabase
+      .from("applications")
+      .insert({
+        user_id,
+        program_id,
+        status: "planning",
+        deadline,
+      })
+      .select("id,user_id,program_id,status,deadline,submitted_at,notes")
+      .single();
+    if (insErr) throw insErr;
+
+    // 2) Re-select with joins so the client immediately gets program + university website
+    const { data: joined, error: joinErr } = await supabase
+      .from("applications")
+      .select(
+        "id,user_id,program_id,status,deadline,submitted_at,notes,program:programs(id,name,aps_requirement,application_close,universities:universities(name,abbreviation,website))"
+      )
+      .eq("id", inserted.id)
+      .single();
+    if (joinErr) throw joinErr;
+
+    return res.status(201).json(joined);
+  } catch (err: any) {
+    console.error("❌ POST /applications error:", err.message);
+    return res.status(500).json({ error: "Failed to create application" });
+  }
+});
 
 router.delete("/applications/:id", async (req, res) => {
   try {
@@ -699,8 +713,11 @@ router.post("/ingest/events", async (req, res) => {
     // __dirname here is .../server
     const sourcesPath = path.resolve(__dirname, "scripts", "sources.json");
     const raw = await readFile(sourcesPath, "utf8");
-    const sources: Array<{ name:string; url:string; kind:"Hackathon"|"Bursary"|"CareerFair"|"Other" }> =
-      JSON.parse(raw);
+    const sources: Array<{
+      name: string;
+      url: string;
+      kind: "Hackathon" | "Bursary" | "CareerFair" | "Other";
+    }> = JSON.parse(raw);
 
     let total = 0;
     for (const s of sources) {
@@ -735,7 +752,10 @@ router.get("/universities", async (_req, res) => {
 // ==============================
 router.get("/subjects", async (req, res) => {
   try {
-    let q = supabase.from("subjects").select("id,name").order("name", { ascending: true });
+    let q = supabase
+      .from("subjects")
+      .select("id,name")
+      .order("name", { ascending: true });
     const search = (req.query.search as string | undefined)?.trim();
     if (search) q = q.ilike("name", `%${search}%`);
     const { data, error } = await q;
@@ -755,7 +775,10 @@ router.get("/aps/profile", async (req, res) => {
   try {
     const user_id = (req.query.user_id as string)?.trim();
     const university_id = Number(req.query.university_id);
-    if (!user_id || !university_id) return res.status(400).json({ error: "user_id and university_id required" });
+    if (!user_id || !university_id)
+      return res
+        .status(400)
+        .json({ error: "user_id and university_id required" });
 
     // find current profile
     const { data: profile, error: pErr } = await supabase
@@ -771,7 +794,9 @@ router.get("/aps/profile", async (req, res) => {
 
     const { data: rows, error: rErr } = await supabase
       .from("user_aps_profile_subjects")
-      .select("id,profile_id,kind,maths_stream,subject_id,band_key,aps_points,position")
+      .select(
+        "id,profile_id,kind,maths_stream,subject_id,band_key,aps_points,position"
+      )
       .eq("profile_id", profile.id)
       .order("kind", { ascending: true })
       .order("position", { ascending: true });
@@ -793,16 +818,34 @@ router.post("/aps/profile", async (req, res) => {
       university_id: number;
       total_aps: number;
       rows: Array<{
-        kind: "home_language" | "mathematics" | "life_orientation" | "additional_language" | "other";
+        kind:
+          | "home_language"
+          | "mathematics"
+          | "life_orientation"
+          | "additional_language"
+          | "other";
         maths_stream?: "mathematics" | "maths_literacy";
         subject_id?: number | null;
-        band_key: "90-100" | "80-89" | "70-79" | "60-69" | "50-59" | "40-49" | "30-39" | "0-29";
+        band_key:
+          | "90-100"
+          | "80-89"
+          | "70-79"
+          | "60-69"
+          | "50-59"
+          | "40-49"
+          | "30-39"
+          | "0-29";
         aps_points: number;
         position: number; // 0 for fixed; 1..3 for 'other'
       }>;
     };
 
-    if (!user_id || !university_id || typeof total_aps !== "number" || !Array.isArray(rows)) {
+    if (
+      !user_id ||
+      !university_id ||
+      typeof total_aps !== "number" ||
+      !Array.isArray(rows)
+    ) {
       return res.status(400).json({ error: "Invalid body" });
     }
 
@@ -860,7 +903,11 @@ router.post("/aps/profile", async (req, res) => {
       .select("*");
     if (rowsErr) throw rowsErr;
 
-    res.status(200).json({ ok: true, profile_id: profileId, subjects_saved: inserted.length });
+    res.status(200).json({
+      ok: true,
+      profile_id: profileId,
+      subjects_saved: inserted.length,
+    });
   } catch (e: any) {
     console.error("❌ POST /aps/profile", e.message);
     res.status(500).json({ error: "Failed to save profile" });
@@ -893,7 +940,9 @@ router.get("/recommendations", async (req, res) => {
     const user_id = (req.query.user_id as string)?.trim();
     const university_id = Number(req.query.university_id);
     if (!user_id || !university_id) {
-      return res.status(400).json({ error: "user_id and university_id required" });
+      return res
+        .status(400)
+        .json({ error: "user_id and university_id required" });
     }
 
     // Load current profile + rows
@@ -922,12 +971,14 @@ router.get("/recommendations", async (req, res) => {
     const others = rows?.filter((r) => r.kind === "other") ?? [];
 
     // APS total
-    const total_aps = rows?.reduce((sum, r) => sum + (r.aps_points ?? 0), 0) ?? 0;
+    const total_aps =
+      rows?.reduce((sum, r) => sum + (r.aps_points ?? 0), 0) ?? 0;
 
     // Programmes for this university
     const { data: programs, error: progErr } = await supabase
       .from("programs")
-      .select(`
+      .select(
+        `
         id, name, aps_requirement, application_close, requirement_notes,
         min_home_language_level, min_home_language_percent,
         min_first_additional_language_level, min_first_additional_language_percent,
@@ -935,7 +986,8 @@ router.get("/recommendations", async (req, res) => {
         min_physical_sciences_level, min_physical_sciences_percent,
         accepts_maths_literacy, min_maths_literacy_level, min_maths_literacy_percent,
         universities:universities(name,abbreviation,website)
-      `)
+      `
+      )
       .eq("university_id", university_id)
       .order("name", { ascending: true });
     if (progErr) throw progErr;
@@ -943,52 +995,94 @@ router.get("/recommendations", async (req, res) => {
     // Helpers to derive levels/percents from bands
     const bandToPercent = (band: string) => {
       switch (band) {
-        case "90-100": return 90;
-        case "80-89":  return 80;
-        case "70-79":  return 70;
-        case "60-69":  return 60;
-        case "50-59":  return 50;
-        case "40-49":  return 40;
-        case "30-39":  return 30;
-        default:       return 0;
+        case "90-100":
+          return 90;
+        case "80-89":
+          return 80;
+        case "70-79":
+          return 70;
+        case "60-69":
+          return 60;
+        case "50-59":
+          return 50;
+        case "40-49":
+          return 40;
+        case "30-39":
+          return 30;
+        default:
+          return 0;
       }
     };
     const bandToLevel = (band: string) => {
       switch (band) {
-        case "90-100": return 7;
-        case "80-89":  return 7;
-        case "70-79":  return 6;
-        case "60-69":  return 5;
-        case "50-59":  return 4;
-        case "40-49":  return 3;
-        case "30-39":  return 2;
-        default:       return 1;
+        case "90-100":
+          return 7;
+        case "80-89":
+          return 7;
+        case "70-79":
+          return 6;
+        case "60-69":
+          return 5;
+        case "50-59":
+          return 4;
+        case "40-49":
+          return 3;
+        case "30-39":
+          return 2;
+        default:
+          return 1;
       }
     };
 
     const results = programs.map((p: any) => {
       const aps_ok = p.aps_requirement ? total_aps >= p.aps_requirement : true;
-      const checks: Array<{ tag: string; ok: boolean; need: string; has?: string }> = [];
+      const checks: Array<{
+        tag: string;
+        ok: boolean;
+        need: string;
+        has?: string;
+      }> = [];
 
       // HL
       if (p.min_home_language_level || p.min_home_language_percent) {
         const hasLevel = hl ? bandToLevel(hl.band_key) : 0;
         const hasPct = hl ? bandToPercent(hl.band_key) : 0;
-        const need = (p.min_home_language_level ? `L${p.min_home_language_level}` : "")
-          + (p.min_home_language_percent ? `${p.min_home_language_level ? " / " : ""}${p.min_home_language_percent}%` : "");
-        const ok = (!p.min_home_language_level || hasLevel >= p.min_home_language_level) &&
-                   (!p.min_home_language_percent || hasPct >= p.min_home_language_percent);
+        const need =
+          (p.min_home_language_level ? `L${p.min_home_language_level}` : "") +
+          (p.min_home_language_percent
+            ? `${p.min_home_language_level ? " / " : ""}${
+                p.min_home_language_percent
+              }%`
+            : "");
+        const ok =
+          (!p.min_home_language_level ||
+            hasLevel >= p.min_home_language_level) &&
+          (!p.min_home_language_percent ||
+            hasPct >= p.min_home_language_percent);
         checks.push({ tag: "HL", ok, need, has: `L${hasLevel}` });
       }
 
       // AL / FAL
-      if (p.min_first_additional_language_level || p.min_first_additional_language_percent) {
+      if (
+        p.min_first_additional_language_level ||
+        p.min_first_additional_language_percent
+      ) {
         const hasLevel = al ? bandToLevel(al.band_key) : 0;
         const hasPct = al ? bandToPercent(al.band_key) : 0;
-        const need = (p.min_first_additional_language_level ? `L${p.min_first_additional_language_level}` : "")
-          + (p.min_first_additional_language_percent ? `${p.min_first_additional_language_level ? " / " : ""}${p.min_first_additional_language_percent}%` : "");
-        const ok = (!p.min_first_additional_language_level || hasLevel >= p.min_first_additional_language_level) &&
-                   (!p.min_first_additional_language_percent || hasPct >= p.min_first_additional_language_percent);
+        const need =
+          (p.min_first_additional_language_level
+            ? `L${p.min_first_additional_language_level}`
+            : "") +
+          (p.min_first_additional_language_percent
+            ? `${p.min_first_additional_language_level ? " / " : ""}${
+                p.min_first_additional_language_percent
+              }%`
+            : "");
+        const ok =
+          (!p.min_first_additional_language_level ||
+            hasLevel >= p.min_first_additional_language_level) &&
+          (!p.min_first_additional_language_percent ||
+            hasPct >= p.min_first_additional_language_percent);
         checks.push({ tag: "FAL", ok, need, has: `L${hasLevel}` });
       }
 
@@ -1000,7 +1094,10 @@ router.get("/recommendations", async (req, res) => {
         p.min_maths_literacy_level ||
         p.min_maths_literacy_percent
       ) {
-        const stream = mz?.maths_stream === "maths_literacy" ? "maths_literacy" : "mathematics";
+        const stream =
+          mz?.maths_stream === "maths_literacy"
+            ? "maths_literacy"
+            : "mathematics";
         const hasLevel = mz ? bandToLevel(mz.band_key) : 0;
         const hasPct = mz ? bandToPercent(mz.band_key) : 0;
 
@@ -1047,8 +1144,14 @@ router.get("/recommendations", async (req, res) => {
       if (p.min_physical_sciences_level || p.min_physical_sciences_percent) {
         const ok = false; // Unknown without explicit subject_id match
         const need =
-          (p.min_physical_sciences_level ? `L${p.min_physical_sciences_level}` : "") +
-          (p.min_physical_sciences_percent ? `${p.min_physical_sciences_level ? " / " : ""}${p.min_physical_sciences_percent}%` : "");
+          (p.min_physical_sciences_level
+            ? `L${p.min_physical_sciences_level}`
+            : "") +
+          (p.min_physical_sciences_percent
+            ? `${p.min_physical_sciences_level ? " / " : ""}${
+                p.min_physical_sciences_percent
+              }%`
+            : "");
         checks.push({ tag: "Physical Sci", ok, need });
       }
 
@@ -1059,7 +1162,8 @@ router.get("/recommendations", async (req, res) => {
           name: p.name,
           aps_requirement: p.aps_requirement,
           application_close: p.application_close,
-          university_tag: p.universities?.abbreviation || p.universities?.name || "",
+          university_tag:
+            p.universities?.abbreviation || p.universities?.name || "",
           website: p.universities?.website || null,
           requirement_notes: p.requirement_notes,
         },
@@ -1081,7 +1185,10 @@ router.get("/events", async (req, res) => {
     const tags = (req.query.tags as string)?.split(",").filter(Boolean) ?? [];
     const types = (req.query.types as string)?.split(",").filter(Boolean) ?? [];
     const urgent = req.query.urgent === "1" || req.query.urgent === "true";
-    const limit = Math.min(parseInt((req.query.limit as string) || "100", 10), 200);
+    const limit = Math.min(
+      parseInt((req.query.limit as string) || "100", 10),
+      200
+    );
     const offset = parseInt((req.query.offset as string) || "0", 10);
 
     let q = supabase
@@ -1221,12 +1328,32 @@ router.delete("/events/:id/save", async (req, res) => {
   }
 });
 
-
-
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
 
+router.put("/tutor/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { subjects, bio, rate_per_hour, availability, grade_levels } = req.body;
 
+  const { data, error } = await supabase
+    .from("tutors")
+    .update({
+      subjects,
+      bio,
+      rate_per_hour,
+      availability,
+      grade_levels,
+    })
+    .eq("user_id", userId)
+    .select();
+
+  if (error) {
+    console.error("❌ Supabase error:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(200).json(data[0]);
+});
 
 export default router;

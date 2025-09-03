@@ -4,6 +4,7 @@ import EditProfileForm from "../components/Profile/EditProfileForm";
 import BecomeTutorForm from "../components/Profile/BecomeTutorForm";
 import { useUser } from "../Users/UserContext"; // ✅ import context
 import { useNavigate } from "react-router-dom";
+import EditTutorForm from "../components/Profile/EditTutorForm";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL; // ✅ use env var
 
@@ -34,6 +35,7 @@ export default function ProfilePage() {
       console.error("❌ Fetch profile failed:", err);
     }
   };
+
   useEffect(() => {
     if (!userId) {
       navigate("/login", { replace: true });
@@ -79,7 +81,7 @@ export default function ProfilePage() {
 
       const payload = {
         user_id: userId,
-        subjects: tutorData.subjects, // array
+        subjects: tutorData.subjects,
         bio: tutorData.bio,
         rate_per_hour: tutorData.rate_per_hour,
         availability: tutorData.availability,
@@ -103,6 +105,43 @@ export default function ProfilePage() {
       setShowTutorForm(false);
     } catch (err) {
       console.error("❌ Tutor creation failed:", err);
+    }
+  };
+
+  /* ============================
+     Edit Tutor
+  ============================ */
+  const handleEditTutor = async (tutorData: any) => {
+    if (!userId) return;
+    try {
+      console.log("➡️ Updating tutor data...", tutorData);
+
+      const payload = {
+        user_id: userId,
+        subjects: tutorData.subjects,
+        bio: tutorData.bio,
+        rate_per_hour: tutorData.rate_per_hour,
+        availability: tutorData.availability,
+        grade_levels: tutorData.gradeLevels,
+      };
+
+      console.log("➡️ Sending updated tutor payload:", payload);
+
+      const res = await fetch(`${API_BASE}/tutor/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update tutor profile");
+
+      const data = await res.json();
+      console.log("✅ Tutor profile updated:", data);
+
+      await fetchProfile();
+      setShowTutorForm(false);
+    } catch (err) {
+      console.error("❌ Tutor update failed:", err);
     }
   };
 
@@ -186,24 +225,36 @@ export default function ProfilePage() {
       {/* Tutoring */}
       <section className={styles.card}>
         <h2 className={styles.sectionTitle}>Tutoring</h2>
+
         {profile.tutor ? (
-          <div>
-            <p>
-              <strong>Subjects:</strong>{" "}
-              {profile.tutor.subjects?.join(", ") || "—"}
-            </p>
-            <p>
-              <strong>Rate per Hour:</strong>{" "}
-              {profile.tutor.rate_per_hour || "—"}
-            </p>
-            <p>
-              <strong>Availability:</strong> {profile.tutor.availability || "—"}
-            </p>
-            <p>
-              <strong>Grade Levels:</strong>{" "}
-              {profile.tutor.grade_levels?.join(", ") || "—"}
-            </p>
-          </div>
+          <>
+            <div>
+              <p>
+                <strong>Subjects:</strong>{" "}
+                {profile.tutor.subjects?.join(", ") || "—"}
+              </p>
+              <p>
+                <strong>Rate per Hour:</strong>{" "}
+                {profile.tutor.rate_per_hour || "—"}
+              </p>
+              <p>
+                <strong>Availability:</strong>{" "}
+                {profile.tutor.availability || "—"}
+              </p>
+              <p>
+                <strong>Grade Levels:</strong>{" "}
+                {profile.tutor.grade_levels?.join(", ") || "—"}
+              </p>
+            </div>
+            <button
+              className={styles.editButton}
+              onClick={() => {
+                setShowTutorForm(true);
+              }}
+            >
+              Edit Tutor Details
+            </button>
+          </>
         ) : (
           <>
             <p>
@@ -211,12 +262,10 @@ export default function ProfilePage() {
               tutor.
             </p>
             <button
-              className={`${styles.tutorButton} ${
-                isTutor ? styles.tutorActive : ""
-              }`}
-              onClick={() => !isTutor && setShowTutorForm(true)}
+              className={styles.tutorButton}
+              onClick={() => setShowTutorForm(true)}
             >
-              {isTutor ? "✔ Tutor" : "Become a Tutor"}
+              Apply to Tutor
             </button>
           </>
         )}
@@ -232,8 +281,9 @@ export default function ProfilePage() {
       )}
 
       {showTutorForm && (
-        <BecomeTutorForm
-          onSubmit={handleBecomeTutor}
+        <EditTutorForm
+          tutor={profile.tutor}
+          onSubmit={handleEditTutor}
           onCancel={() => setShowTutorForm(false)}
         />
       )}
