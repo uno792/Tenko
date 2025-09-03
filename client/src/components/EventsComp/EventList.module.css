@@ -1,4 +1,2 @@
-.list {
-  display: flex;
-  flex-direction: column;
-}
+.list { display: grid; gap: 14px; }
+.loading, .empty { color: #666; padding: 8px; }

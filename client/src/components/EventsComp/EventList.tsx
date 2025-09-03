@@ -1,80 +1,71 @@
-import React from "react";
-import EventCard from "./EventCard";
+import React, { useEffect, useState } from "react";
 import styles from "./EventList.module.css";
+import EventCard from "./EventCard";
+import {
+  type EventItem,
+  fetchEvents,
+  fetchEventStatuses,
+} from "../../services/eventsApi";
 
-type Event = {
-  title: string;
-  date: string;
-  location: string;
-  description: string;
-  category: string;
-  daysLeft?: number;
-  reward?: string;
-  tagColor: string;
+type Props = {
+  userId: string | null;
+  mode: "All Events" | "Recommended" | "Urgent Deadlines";
+  selectedTags: string[];
 };
 
-type EventListProps = {
-  filter: string;
-};
+const EventList: React.FC<Props> = ({ userId, mode, selectedTags }) => {
+  const [items, setItems] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const events: Event[] = [
-  {
-    title: "Tech Innovation Hackathon 2024",
-    date: "15 Feb 2024",
-    location: "Innovation Hub, Cape Town",
-    description:
-      "Build innovative solutions for real-world problems. Open to all university students with coding experience.",
-    category: "Hackathon",
-    daysLeft: 5,
-    reward: "R50,000",
-    tagColor: "#e74c3c",
-  },
-  {
-    title: "Graduate Career Fair 2024",
-    date: "28 Feb 2024",
-    location: "CTICC, Cape Town",
-    description:
-      "Connect with top employers across various industries. Over 100 companies recruiting graduates and interns.",
-    category: "Career Fair",
-    daysLeft: 20,
-    reward: "Job Opportunities",
-    tagColor: "#6a1b9a",
-  },
-  {
-    title: "Engineering Excellence Bursary",
-    date: "01 Mar 2024",
-    location: "Online Application",
-    description:
-      "Full tuition bursary for outstanding engineering students. Covers tuition, accommodation, and study materials.",
-    category: "Bursary",
-    daysLeft: 25,
-    reward: "R120,000/year",
-    tagColor: "#388e3c",
-  },
-  {
-    title: "Youth Leadership Summit",
-    date: "15 Mar 2024",
-    location: "University of Cape Town",
-    description:
-      "Develop your leadership skills and network with like-minded young professionals. Interactive workshops.",
-    category: "Summit",
-    tagColor: "#e67e22",
-  },
-];
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      const urgent = mode === "Urgent Deadlines";
+      const types =
+        mode === "Recommended" ? ["Hackathon", "Bursary"] : undefined;
 
-const EventList: React.FC<EventListProps> = ({ filter }) => {
-  const filteredEvents = events.filter((event) => {
-    if (filter === "Urgent Deadlines")
-      return event.daysLeft !== undefined && event.daysLeft <= 10;
-    if (filter === "Recommended")
-      return event.category === "Hackathon" || event.category === "Bursary";
-    return true; // "All Events"
-  });
+      try {
+        const events = await fetchEvents({
+          tags: selectedTags,
+          types,
+          urgent,
+          limit: 200,
+        });
+
+        if (userId) {
+          const statuses = await fetchEventStatuses(userId);
+          const byId = new Map<number, "applied" | "saved">(
+            statuses.map((s) => [s.event_id, s.status])
+          );
+          events.forEach((ev) => {
+            ev.user_status = byId.get(ev.id) ?? null;
+          });
+        }
+
+        if (alive) setItems(events);
+      } catch (e) {
+        console.error(e);
+        if (alive) setItems([]);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [userId, mode, selectedTags]);
+
+  if (loading) return <div className={styles.loading}>Loading events…</div>;
+  if (items.length === 0)
+    return (
+      <div className={styles.empty}>No events match your filters yet.</div>
+    );
 
   return (
     <div className={styles.list}>
-      {filteredEvents.map((event, index) => (
-        <EventCard key={index} {...event} />
+      {items.map((ev) => (
+        <EventCard key={ev.id} userId={userId} event={ev} />
       ))}
     </div>
   );

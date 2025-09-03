@@ -2,7 +2,7 @@ name: Nightly Events & Opportunities
 
 on:
   schedule:
-    - cron: "59 21 * * *" # ~23:59 SAST nightly
+    - cron: "59 21 1 * *" # ~23:59 SAST nightly
   workflow_dispatch: {}
 
 jobs:

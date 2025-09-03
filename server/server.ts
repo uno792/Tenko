@@ -19,7 +19,7 @@ const router = express.Router();
 
 app.use(cors());
 app.use(express.json());
-app.use(router);
+app.use("/api", router);
 
 app.get("/api", (req: Request, res: Response) => {
   res.send("Hello from the API");
@@ -1075,6 +1075,153 @@ router.get("/recommendations", async (req, res) => {
     res.status(500).json({ error: "Failed to compute recommendations" });
   }
 });
+
+router.get("/events", async (req, res) => {
+  try {
+    const tags = (req.query.tags as string)?.split(",").filter(Boolean) ?? [];
+    const types = (req.query.types as string)?.split(",").filter(Boolean) ?? [];
+    const urgent = req.query.urgent === "1" || req.query.urgent === "true";
+    const limit = Math.min(parseInt((req.query.limit as string) || "100", 10), 200);
+    const offset = parseInt((req.query.offset as string) || "0", 10);
+
+    let q = supabase
+      .from("events")
+      .select("*")
+      .order("start_date", { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (tags.length) {
+      // overlap: faculty_tags && {tags}
+      q = q.overlaps("faculty_tags", tags as any);
+    }
+    if (types.length) {
+      q = q.in("type", types as any);
+    }
+    if (urgent) {
+      // we can't do date math server-side easily with the client; so approximate:
+      const soon = new Date();
+      soon.setDate(soon.getDate() + 10);
+      const soonISO = soon.toISOString().slice(0, 10);
+
+      // (end_date <= soon) OR (end_date IS NULL AND start_date <= soon)
+      // Supabase doesn't support OR easily in one call; we can broad filter by start_date
+      // and handle more precise filtering client-side. To keep simple: filter by start_date <= soon.
+      q = q.lte("start_date", soonISO);
+    }
+
+    const { data, error } = await q;
+    if (error) throw error;
+
+    return res.status(200).json(data || []);
+  } catch (err: any) {
+    console.error("❌ GET /events error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+// GET /api/events/status?user_id=abc
+// Returns [{ event_id, status }]
+router.get("/events/status", async (req, res) => {
+  try {
+    const user_id = (req.query.user_id as string) || "";
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    const { data, error } = await supabase
+      .from("event_signups")
+      .select("event_id,status")
+      .eq("user_id", user_id);
+
+    if (error) throw error;
+    return res.status(200).json(data || []);
+  } catch (err: any) {
+    console.error("❌ GET /events/status error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch event statuses" });
+  }
+});
+
+// POST /api/events/:id/applied  body: { user_id }
+router.post("/events/:id/applied", async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const { user_id } = req.body || {};
+    if (!eventId) return res.status(400).json({ error: "Invalid event id" });
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    const payload = {
+      user_id,
+      event_id: eventId,
+      status: "applied",
+      registered_at: new Date().toISOString(),
+    };
+
+    // upsert on (user_id,event_id)
+    const { data, error } = await supabase
+      .from("event_signups")
+      .upsert(payload, { onConflict: "user_id,event_id" })
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err: any) {
+    console.error("❌ POST /events/:id/applied error:", err.message);
+    return res.status(500).json({ error: "Failed to mark applied" });
+  }
+});
+
+// POST /api/events/:id/save   body: { user_id }
+router.post("/events/:id/save", async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const { user_id } = req.body || {};
+    if (!eventId) return res.status(400).json({ error: "Invalid event id" });
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    const payload = {
+      user_id,
+      event_id: eventId,
+      status: "saved",
+      registered_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("event_signups")
+      .upsert(payload, { onConflict: "user_id,event_id" })
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return res.status(200).json(data);
+  } catch (err: any) {
+    console.error("❌ POST /events/:id/save error:", err.message);
+    return res.status(500).json({ error: "Failed to save" });
+  }
+});
+
+// DELETE /api/events/:id/save?user_id=abc
+router.delete("/events/:id/save", async (req, res) => {
+  try {
+    const eventId = Number(req.params.id);
+    const user_id = req.query.user_id as string;
+    if (!eventId) return res.status(400).json({ error: "Invalid event id" });
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    const { error } = await supabase
+      .from("event_signups")
+      .delete()
+      .eq("user_id", user_id)
+      .eq("event_id", eventId)
+      .eq("status", "saved");
+
+    if (error) throw error;
+    return res.status(204).end();
+  } catch (err: any) {
+    console.error("❌ DELETE /events/:id/save error:", err.message);
+    return res.status(500).json({ error: "Failed to unsave" });
+  }
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);

@@ -1,23 +1,91 @@
-.filterBar {
+.card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.title {
+  color: #0a66c2;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badgeGood   { background: #e9f8ef; color: #0a7a3f; border-color: #bfead0; }
+.badgeWarn   { background: #fff7e6; color: #8a4b07; border-color: #ffe0b2; }
+.badgeInfo   { background: #e8f1ff; color: #0a46a7; border-color: #c9ddff; }
+.badgeClosed { background: #fde9e9; color: #9f1d1d; border-color: #f7b7b7; }
+.badgeNeutral{ background: #f1f1f1; color: #555; border-color: #e0e0e0; }
+
+.details {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1rem;
+  font-size: .9rem;
+  color: #666;
+  margin-bottom: 6px;
 }
 
-.filterButton {
-  border: 1px solid #8b1c32;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-weight: 500;
+.timeline {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 8px;
 }
 
-.filterButton:hover {
-  background: #f9f9f9;
+.description { margin-bottom: 12px; font-size: 0.95rem; }
+
+.footer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
 }
 
-.active {
-  background: #8b1c32;
-  color: white;
+.typeBubble {
+  color: #fff;
+  font-size: .8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.tagRow { display: flex; gap: 6px; flex-wrap: wrap; }
+.smallTag {
+  background: #f6f6f6;
+  color: #444;
+  font-size: .75rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #e8e8e8;
+}
+
+.actions { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+.applyBtn {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid #8b1c32; background: #8b1c32; color: #fff; font-weight: 600;
+}
+.appliedBtn {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid #0a7a3f; background: #0a7a3f; color: #fff; font-weight: 600;
+}
+.laterBtn {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid #999; background: #fff; color: #333; font-weight: 600;
+}
+.appliedPill {
+  background: #e9f8ef; color: #0a7a3f; border: 1px solid #bfead0; padding: 6px 10px; border-radius: 999px; font-weight: 700;
 }
