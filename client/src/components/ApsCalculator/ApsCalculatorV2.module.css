@@ -1,14 +1,22 @@
-/* headless; outer page card provides frame */
+/* ===== Layout shell ===== */
 .wrap { display: grid; gap: 12px; }
 
 .topRow { display:flex; align-items:end; justify-content:space-between; gap:16px; }
+.scoreBlock { display:grid; gap:4px; }
 .bigScore { font-size:3rem; font-weight:800; line-height:1; color:#7b0f22; }
 .label { color:#777; margin-top:2px; }
+
 .uniPick { display:grid; gap:4px; text-align:right; }
 .uniLbl { font-size:.75rem; color:#666; }
-.uniSelect { padding:6px 10px; border:1.5px solid #d9b7be; border-radius:10px; background:#fff; min-width:220px; }
+.uniSelect {
+  padding:6px 10px;
+  border:1.5px solid #d9b7be;
+  border-radius:10px;
+  background:#fff;
+  min-width:220px;
+}
 
-/* aligned columns: 1fr (subject) | 200px (band) | 32px (points) */
+/* ===== Grid of rows: 1fr | 200px | 32px ===== */
 .grid {
   list-style:none; padding:0; margin:0;
   display:grid; grid-template-columns: 1fr 200px 32px;
@@ -18,20 +26,74 @@
 
 .subject { font-weight:700; color:#333; display:flex; align-items:center; gap:8px; min-height:40px; }
 .subSwitch { margin-left:10px; display:flex; gap:12px; font-weight:600; color:#555; }
-.subSelect { padding:6px 10px; border:1.5px solid #d9b7be; border-radius:10px; background:#fff; min-width:280px; font-weight:600; }
+
+.subSelect {
+  padding:6px 10px;
+  border:1.5px solid #d9b7be;
+  border-radius:10px;
+  background:#fff;
+  min-width:280px;
+  font-weight:600;
+}
 
 .band {
-  width: 200px; padding:6px 10px; border:1.5px solid #d9b7be;
-  border-radius:10px; background:#f7f1f2;
+  width: 200px;
+  padding:6px 10px;
+  border:1.5px solid #d9b7be;
+  border-radius:10px;
+  background:#f7f1f2;
 }
+
 .points { text-align:right; font-weight:800; color:#1d1d1d; }
 
+/* ===== Actions row ===== */
 .actions { display:flex; align-items:center; gap:10px; margin-top:6px; }
 .spacer { flex:1; }
+
+/* ===== Buttons ===== */
+/* Keep Save maroon ALWAYS, regardless of hover or focus. Use !important to beat any global button styles. */
 .primary {
-  background:#7b0f22; color:#fff; border:none; border-radius:12px;
-  padding:10px 16px; font-weight:700; cursor:pointer; transition:background .2s, transform .1s;
+  background:#7b0f22 !important;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:10px 16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .1s;
 }
-.primary:hover:not(:disabled){ background:#9a142b; transform:translateY(-1px); }
-.primary:disabled { opacity:.6; cursor:not-allowed; }
-.secondary { background:#fff; color:#7b0f22; border:1.5px solid #e2a0a9; border-radius:12px; padding:10px 12px; font-weight:700; cursor:pointer; }
+.primary:hover { transform:translateY(-1px); }              /* tiny lift on hover */
+.primary:focus-visible { outline:3px solid #e8b3bd; }
+
+.primary:disabled {
+  background:#7b0f22 !important;   /* stay maroon even when disabled */
+  color:#fff;
+  opacity:.55;                      /* subtle fade to indicate disabled */
+  cursor:not-allowed;
+  transform:none;
+}
+
+/* Secondary action */
+.secondary {
+  background:#fff;
+  color:#7b0f22;
+  border:1.5px solid #e2a0a9;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.secondary:hover { filter:brightness(.98); }
+
+/* ===== Optional alt footer (used in a previous version) ===== */
+.rowTail { display:flex; align-items:center; gap:10px; margin-top:6px; }
+.smallBtn {
+  background:#fff;
+  color:#7b0f22;
+  border:1.5px solid #e2a0a9;
+  border-radius:12px;
+  padding:8px 10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.smallBtn:hover { filter:brightness(.98); }
