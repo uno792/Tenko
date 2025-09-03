@@ -1,0 +1,48 @@
+.card {
+  border: 2px solid #d9a5a5;
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.card h3 {
+  margin-bottom: 0.8rem;
+  color: #8b1c32;
+  font-size: 1rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+small {
+  display: block;
+  color: #888;
+  margin-left: 1.5rem;
+  font-size: 0.8rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #d93025;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
