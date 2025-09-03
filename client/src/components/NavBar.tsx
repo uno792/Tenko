@@ -35,6 +35,8 @@ const Navbar: React.FC = () => {
     { to: "/findtutor", label: "Tutors", icon: <Users size={18} /> },
 
     { to: "/events", label: "Events", icon: <Star size={18} /> },
+
+    { to: "/profile", label: "My Profile", icon: <Users size={18} /> },
   ];
 
   return (
