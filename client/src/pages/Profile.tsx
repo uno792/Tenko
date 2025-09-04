@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 document.getElementById("profilePicUpload")?.click()
               }
             >
-              Edit Profile Pic
+              Edit
             </button>
           </div>
 

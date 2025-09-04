@@ -54,7 +54,7 @@
 
 .picButton {
   position: relative; /* allows offset */
-  left: -30px; /* moves left by 5px */
+  left: -20px; /* moves left by 5px */
   top: 130px; /* moves down by 3px */
 
   /* other existing styles */
@@ -65,8 +65,8 @@
   font-weight: 600;
   cursor: pointer;
 
-  width: 80px;
-  height: 30px;
+  width: 50px;
+  height: 20px;
   font-size: 10px;
   line-height: 7px;
   padding: 0;

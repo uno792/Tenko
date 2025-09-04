@@ -71,3 +71,25 @@
   padding: 0.6rem;
   cursor: pointer;
 }
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #800020;
+  cursor: pointer;
+}
+
+.avatarFallback {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #800020;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
