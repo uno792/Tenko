@@ -31,16 +31,24 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: 1.1fr 1.4fr 1fr;
+  grid-template-columns: 1.1fr 2.6fr; /* left + flexPair */
   gap: 20px;
   align-items: start;
 }
+
 .flexPair {
   display: flex;
   gap: 20px;
+  align-items: stretch;
 }
-.flexPair > .card {
-  flex: 1;
+
+/* Give Applications less width, Deadlines more */
+.flexPair > .card:first-child {
+  flex: 2; /* Applications */
+}
+
+.flexPair > .card:last-child {
+  flex: 1.5; /* Deadlines */
 }
 
 @media (max-width: 1200px) {
