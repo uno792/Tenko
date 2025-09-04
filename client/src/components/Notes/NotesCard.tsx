@@ -1,5 +1,6 @@
 import styles from "./NotesCard.module.css";
 import { baseURL } from "../../config";
+
 interface NotesCardProps {
   id: number;
   title: string;
@@ -7,6 +8,8 @@ interface NotesCardProps {
   subject: string;
   grade: string;
   author: string;
+  authorId: string;
+  currentUserId: string;
   description: string;
   downloads: number;
   upvotes: number;
@@ -21,6 +24,8 @@ export default function NotesCard({
   subject,
   grade,
   author,
+  authorId,
+  currentUserId,
   description,
   downloads,
   upvotes,
@@ -50,6 +55,28 @@ export default function NotesCard({
       console.error("❌ Download failed:", err);
     }
   }
+
+  async function handleDelete() {
+    try {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this note?"
+      );
+      if (!confirmed) return;
+
+      const res = await fetch(`${baseURL}/resources/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: currentUserId }), // 👈 send logged-in user id
+      });
+      if (!res.ok) throw new Error("Failed to delete resource");
+
+      window.location.reload(); // refresh to remove deleted note
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
+    }
+  }
+
+  console.log("Note debug:", { id, authorId, currentUserId });
 
   return (
     <div className={styles.card}>
@@ -88,6 +115,11 @@ export default function NotesCard({
         <button className={styles.download} onClick={handleDownload}>
           ⬇ Download
         </button>
+        {currentUserId === authorId && (
+          <button className={styles.delete} onClick={handleDelete}>
+            🗑 Delete
+          </button>
+        )}
       </div>
     </div>
   );

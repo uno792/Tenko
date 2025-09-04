@@ -99,3 +99,18 @@
 .download:hover {
   background: #a00028;
 }
+
+.delete {
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #dc2626; /* red-600 */
+  color: #fff;
+}
+
+.delete:hover {
+  background: #b91c1c; /* red-700 */
+}
