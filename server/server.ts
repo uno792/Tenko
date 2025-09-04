@@ -45,6 +45,64 @@ function assertServiceRole() {
 }
 assertServiceRole();
 
+// ✅ Get reviews for a tutor
+router.get("/tutors/:id/reviews", async (req, res) => {
+  try {
+    const tutorId = req.params.id;
+    const { data, error } = await supabase
+      .from("tutor_reviews")
+      .select(`
+        id,
+        rating,
+        comment,
+        created_at,
+        reviewer:reviewer_id (username)
+      `)
+      .eq("tutor_id", tutorId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (err: any) {
+    console.error("❌ Fetch reviews failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Post a new review
+router.post("/tutors/:id/reviews", async (req, res) => {
+  try {
+    const tutorId = req.params.id;
+    const { reviewer_id, rating, comment } = req.body;
+
+    if (!reviewer_id || !rating) {
+      return res.status(400).json({ error: "Reviewer ID and rating are required" });
+    }
+
+    const { data, error } = await supabase
+      .from("tutor_reviews")
+      .insert([
+        {
+          tutor_id: tutorId,
+          reviewer_id,
+          rating,
+          comment,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (err: any) {
+    console.error("❌ Create review failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // getting names to display
 router.get("/names", async (req, res) => {
   const { data, error } = await supabase
@@ -75,6 +133,56 @@ router.get("/checkID", async (req, res) => {
 
   return res.status(200).json({ exists });
 });
+
+// Get all tutors with user info + avg rating
+router.get("/tutors", async (req, res) => {
+  try {
+    const { data: tutors, error } = await supabase
+      .from("tutors")
+      .select(`
+        id,
+        user_id,
+        subjects,
+        bio,
+        rate_per_hour,
+        grade_levels,
+        users:user_id (
+          username,
+          email,
+          phone,
+          institution,
+          grade_year
+        )
+      `);
+
+    if (error) throw error;
+
+    // fetch reviews separately and compute avg rating (default 0 if none)
+    const tutorsWithRatings = await Promise.all(
+      tutors.map(async (tutor: any) => {
+        const { data: reviews } = await supabase
+          .from("tutor_reviews")
+          .select("rating")
+          .eq("tutor_id", tutor.id);
+
+        const ratings = reviews?.map((r) => r.rating) || [];
+        const avg_rating =
+          ratings.length > 0
+            ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+            : 0; // 👈 default to 0
+
+        return { ...tutor, avg_rating };
+      })
+    );
+
+    res.json(tutorsWithRatings);
+  } catch (err: any) {
+    console.error("❌ Fetch tutors failed:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 //adding user to the DB
 router.post("/addUser", async (req, res) => {
   console.log("BODY /addUser:", req.body); // should log { user_id, username }
