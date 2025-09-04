@@ -34,7 +34,7 @@ export default function Loader() {
               strokeDashoffset="402"
               strokeDasharray="402.12 402.12"
               strokeWidth="30"
-              stroke="hsl(223,90%,50%)"
+              stroke="hsla(0, 53%, 41%, 1.00)"
               r="64"
               className={styles.pencil__body1}
             ></circle>
@@ -43,7 +43,7 @@ export default function Loader() {
               strokeDashoffset="465"
               strokeDasharray="464.96 464.96"
               strokeWidth="10"
-              stroke="hsl(223,90%,60%)"
+              stroke="hsla(0, 67%, 25%, 1.00)"
               r="74"
               className={styles.pencil__body2}
             ></circle>
@@ -52,7 +52,7 @@ export default function Loader() {
               strokeDashoffset="339"
               strokeDasharray="339.29 339.29"
               strokeWidth="10"
-              stroke="hsl(223,90%,40%)"
+              stroke="hsla(0, 73%, 31%, 1.00)"
               r="54"
               className={styles.pencil__body3}
             ></circle>
@@ -67,7 +67,7 @@ export default function Loader() {
                 width="30"
                 ry="5"
                 rx="5"
-                fill="hsl(223,90%,70%)"
+                fill="hsla(0, 90%, 70%, 1.00)"
               ></rect>
               <rect
                 clipPath="url(#pencil-eraser)"
