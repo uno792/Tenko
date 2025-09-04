@@ -1,0 +1,9 @@
+.pageContainer {
+  padding-left: 35px;
+}
+
+.pageTitle {
+  margin-bottom: 1rem;
+  color: #8b1c32;
+  font-weight: 800;
+}

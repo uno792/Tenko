@@ -38,7 +38,9 @@ export default function TutorCard({ tutor, onViewProfile }: TutorCardProps) {
         <p className={styles.cardMeta}>
           {tutor.subjects?.join(", ")} • {tutor.grade_levels?.join(", ")}
         </p>
-        <p className={styles.cardRating}>⭐ {tutor.avg_rating || "No rating"}</p>
+        <p className={styles.cardRating}>
+          ⭐ {tutor.avg_rating || "No rating"}
+        </p>
         <p className={styles.cardContact}>
           {tutor.users?.email} • {tutor.users?.phone}
         </p>
@@ -56,7 +58,6 @@ export default function TutorCard({ tutor, onViewProfile }: TutorCardProps) {
     </div>
   );
 }
-
 
 /*import styles from "../../pages/tutorMarketplace.module.css";
 

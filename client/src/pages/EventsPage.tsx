@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import EventFilterBar from "../components/EventsComp/EventFilterBar";
 import EventList from "../components/EventsComp/EventList";
 import { useUser } from "../Users/UserContext";
+import styles from "./EventsPage.module.css";
 
 const EventsPage: React.FC = () => {
   const { user } = useUser();
@@ -18,10 +19,8 @@ const EventsPage: React.FC = () => {
     );
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1 style={{ marginBottom: "1rem", color: "#8b1c32", fontWeight: 800 }}>
-        Events & Opportunities
-      </h1>
+    <div className={styles.pageContainer}>
+      <h1 className={styles.pageTitle}>Events & Opportunities</h1>
 
       <EventFilterBar
         mode={mode}

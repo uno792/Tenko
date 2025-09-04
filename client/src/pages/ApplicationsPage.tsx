@@ -126,11 +126,10 @@ export default function ApplicationsPage() {
             Your complete guide to SA applications, requirements, and deadlines.
           </p>
         </div>
-        {/* ⛔️ Removed the top-left Add button per your request */}
       </header>
 
       <div className={styles.grid}>
-        {/* Left: slim, rectangular APS calculator */}
+        {/* Left: APS calculator stays auto-height */}
         <section className={`${styles.card} ${styles.slimCard}`}>
           <div className={styles.cardHeadTight}>
             <h2 className={styles.cardTitle}>APS Calculator</h2>
@@ -138,81 +137,84 @@ export default function ApplicationsPage() {
           <ApsCalculatorV2 compact />
         </section>
 
-        {/* Middle: Applications */}
-        <section className={styles.card}>
-          <div className={styles.cardHead}>
-            <h2 className={styles.cardTitle}>Applications</h2>
-            <button
-              className={styles.primaryBtn}
-              onClick={() => setAddOpen(true)}
-            >
-              <span className={styles.plus}>＋</span> Add
-            </button>
-          </div>
-
-          {loading ? (
-            <div className={styles.skeletonList}>
-              <div className={styles.skeleton} />
-              <div className={styles.skeleton} />
-              <div className={styles.skeleton} />
-            </div>
-          ) : apps.length === 0 ? (
-            <div className={styles.empty}>
-              <p>No applications yet.</p>
+        {/* Middle + Right: stretch together */}
+        <div className={styles.flexPair}>
+          {/* Applications */}
+          <section className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2 className={styles.cardTitle}>Applications</h2>
               <button
-                className={styles.linkBtn}
+                className={styles.primaryBtn}
                 onClick={() => setAddOpen(true)}
               >
-                Add your first application →
+                <span className={styles.plus}>＋</span> Add
               </button>
             </div>
-          ) : (
-            <ul className={styles.list}>
-              {apps.map((a) => (
-                <ApplicationCard
-                  key={a.id}
-                  app={a}
-                  onRemove={() => handleRemove(a.id)}
-                  onApplyNow={() =>
-                    handleApplyNow(a.program?.universities?.website)
-                  }
-                  onMarkApplied={() => handleMarkApplied(a.id)}
-                />
-              ))}
-            </ul>
-          )}
-        </section>
 
-        {/* Right: Upcoming Deadlines with days left */}
-        <section className={styles.card}>
-          <div className={styles.cardHead}>
-            <h2 className={styles.cardTitle}>Upcoming Deadlines</h2>
-          </div>
-          {upcoming.length === 0 ? (
-            <div className={styles.emptySmall}>Nothing coming up.</div>
-          ) : (
-            <ul className={styles.deadlines}>
-              {upcoming.map((d) => (
-                <li key={d.id} className={styles.deadlineItem}>
-                  <span className={styles.dot} />
-                  <div className={styles.deadlineMain}>
-                    <div className={styles.deadlineName}>{d.name}</div>
-                    <div className={styles.deadlineDate}>
-                      {new Date(d.when!).toLocaleDateString()}
+            {loading ? (
+              <div className={styles.skeletonList}>
+                <div className={styles.skeleton} />
+                <div className={styles.skeleton} />
+                <div className={styles.skeleton} />
+              </div>
+            ) : apps.length === 0 ? (
+              <div className={styles.empty}>
+                <p>No applications yet.</p>
+                <button
+                  className={styles.linkBtn}
+                  onClick={() => setAddOpen(true)}
+                >
+                  Add your first application →
+                </button>
+              </div>
+            ) : (
+              <ul className={styles.list}>
+                {apps.map((a) => (
+                  <ApplicationCard
+                    key={a.id}
+                    app={a}
+                    onRemove={() => handleRemove(a.id)}
+                    onApplyNow={() =>
+                      handleApplyNow(a.program?.universities?.website)
+                    }
+                    onMarkApplied={() => handleMarkApplied(a.id)}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Upcoming Deadlines */}
+          <section className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2 className={styles.cardTitle}>Upcoming Deadlines</h2>
+            </div>
+            {upcoming.length === 0 ? (
+              <div className={styles.emptySmall}>Nothing coming up.</div>
+            ) : (
+              <ul className={styles.deadlines}>
+                {upcoming.map((d) => (
+                  <li key={d.id} className={styles.deadlineItem}>
+                    <span className={styles.dot} />
+                    <div className={styles.deadlineMain}>
+                      <div className={styles.deadlineName}>{d.name}</div>
+                      <div className={styles.deadlineDate}>
+                        {new Date(d.when!).toLocaleDateString()}
+                      </div>
+                      <span className={styles.daysChip}>
+                        {d.left === null
+                          ? "—"
+                          : d.left >= 0
+                          ? `${d.left} days left`
+                          : "Closed"}
+                      </span>
                     </div>
-                  </div>
-                  <span className={styles.daysChip}>
-                    {d.left === null
-                      ? "—"
-                      : d.left >= 0
-                      ? `${d.left} days left`
-                      : "Closed"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       </div>
 
       <AddApplicationModal

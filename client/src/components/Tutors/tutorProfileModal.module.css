@@ -63,19 +63,18 @@
   margin-bottom: 1rem;
 }
 
-.tabs button {
-  flex: 1;
+.tabsbutton {
   padding: 0.6rem;
   border: none;
-  background: #f3f3f3;
+  background: #800000;
   cursor: pointer;
   border-radius: 6px;
   font-weight: 600;
+  color: white;
 }
 
 .activeTab {
-  background: #800000;
-  color: #fff;
+  color: white;
 }
 
 .content {
