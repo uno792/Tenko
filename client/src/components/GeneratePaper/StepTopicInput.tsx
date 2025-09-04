@@ -1,10 +1,12 @@
 import styles from "./StepTopicInput.module.css";
 
 type Props = {
-  subject: "english" | "afrikaans";
+  subject: "english" | "afrikaans" | "it-p2" | "history-p1" | "lo-p1";
   grade: string;
   customText: string;
-  setSubject: (s: "english" | "afrikaans") => void;
+  setSubject: (
+    s: "english" | "afrikaans" | "it-p2" | "history-p1" | "lo-p1"
+  ) => void;
   setGrade: (g: string) => void;
   setCustomText: (t: string) => void;
   onNext: () => void;
@@ -29,11 +31,21 @@ export default function StepTopicInput({
           className={styles.select}
           value={subject}
           onChange={(e) =>
-            setSubject(e.target.value as "english" | "afrikaans")
+            setSubject(
+              e.target.value as
+                | "english"
+                | "afrikaans"
+                | "it-p2"
+                | "history-p1"
+                | "lo-p1"
+            )
           }
         >
           <option value="english">English HL Paper 1</option>
           <option value="afrikaans">Afrikaans FAL Paper 1</option>
+          <option value="it-p2">Information Technology P2</option>
+          <option value="history-p1">History Paper 1</option>
+          <option value="lo-p1">Life Orientation Paper 1</option>
         </select>
       </div>
 

@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import styles from "./StepResults.module.css";
 
 type Props = {
-  subject: "english" | "afrikaans";
+  subject: "english" | "afrikaans" | "it-p2" | "history-p1" | "lo-p1";
   grade: string;
   customText: string;
 };
@@ -24,7 +24,7 @@ export default function StepResults({ subject, grade, customText }: Props) {
       );
       const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      // Different structures for English vs Afrikaans
+      // Different structures for English, Afrikaans, IT P2
       let prompt = "";
       if (subject === "english") {
         prompt = `
@@ -95,6 +95,141 @@ Return ONLY valid JSON:
     ...
   ]
 }`;
+      } else if (subject === "it-p2") {
+        prompt = `
+Generate a full NSC Information Technology Paper 2 practice exam for Grade ${grade}.
+Do not include answers or memos.
+Do not include diagrams or screenshots.
+
+Structure it as JSON exactly like this:
+{
+  "paperTitle": "Information Technology P2 Practice Exam",
+  "grade": "${grade}",
+  "totalMarks": 150,
+  "sections": [
+    {
+      "title": "Section A: Short Questions",
+      "marks": 15,
+      "questions": [
+        { "question": "Example multiple choice question", "marks": 1 }
+      ]
+    },
+    {
+      "title": "Section B: Systems Technologies",
+      "marks": 25,
+      "questions": [...]
+    },
+    {
+      "title": "Section C: Communication and Network Technologies",
+      "marks": 30,
+      "questions": [...]
+    },
+    {
+      "title": "Section D: Data and Information Management",
+      "marks": 20,
+      "questions": [...]
+    },
+    {
+      "title": "Section E: Solution Development",
+      "marks": 20,
+      "questions": [...]
+    },
+    {
+      "title": "Section F: Integrated Scenario",
+      "marks": 40,
+      "questions": [...]
+    }
+  ]
+}
+
+Guidelines per section:
+- Section A: Multiple choice, matching, and fact recall (systems concepts, networking units, common protocols, program tracing).
+- Section B: Hardware/software (CPU vs GPU, SSD vs flash, Wi-Fi vs Bluetooth, SaaS, antivirus).
+- Section C: Networking/security (switch vs router, firewalls, Wi-Fi issues, torrenting, star topology, IoT).
+- Section D: Databases (ERDs, normalisation, validation, transaction processing, audit trails).
+- Section E: Programming (GUI design, arrays, syntax vs logic errors, Boolean logic, classes/objects, flowcharts).
+- Section F: Case study (VOD, ergonomics, streaming vs downloading, SSL, phishing, scalability, AI, big data, ethics).
+`;
+      } else if (subject === "history-p1") {
+        prompt = `
+Generate a full NSC History Paper 1 practice exam for Grade ${grade}.
+Paper 1 covers world history (not South African history).
+Do not include answers or memos.
+
+Structure as JSON like this:
+{
+  "paperTitle": "History Paper 1 Practice Exam",
+  "grade": "${grade}",
+  "totalMarks": 100,
+  "sections": [
+    {
+      "title": "Section A: Essay Questions",
+      "marks": 50,
+      "questions": [
+        { "question": "Essay question text", "marks": 50 }
+      ]
+    },
+    {
+      "title": "Section B: Source-Based Questions",
+      "marks": 50,
+      "questions": [
+        { "question": "Source-based question text", "marks": 50 }
+      ]
+    }
+  ]
+}
+
+Guidelines:
+- Section A: Provide 2 essay questions (candidates answer 1). Topics from Cold War, Civil Rights, Vietnam, Cuba, China, Civil Society protest.
+- Marking grid (50 marks): Analysis & argument (30), Use of relevant evidence (20).
+- Section B: Provide 2 source-based questions (candidates answer 1). Topics from Independent Africa, End of Cold War, Globalisation.
+- Include comprehension, interpretation, reliability/utility, and an extended paragraph (8 marks).
+- Total marks = 100.
+`;
+      } else if (subject === "lo-p1") {
+        prompt = `
+Generate a full NSC Life Orientation Paper 1 practice exam for Grade ${grade}.
+Do not include answers or memos.
+
+Structure as JSON exactly like this:
+{
+  "paperTitle": "Life Orientation Paper 1 Practice Exam",
+  "grade": "${grade}",
+  "totalMarks": 100,
+  "sections": [
+    {
+      "title": "Section A: Short Questions",
+      "marks": 20,
+      "questions": [
+        { "question": "Example multiple choice / short question", "marks": 1 }
+      ]
+    },
+    {
+      "title": "Section B: Case Studies & Application Questions",
+      "marks": 40,
+      "questions": [
+        { "question": "Case study application question", "marks": 10 }
+      ]
+    },
+    {
+      "title": "Section C: Essays / Extended Paragraphs",
+      "marks": 40,
+      "questions": [
+        { "question": "Essay question text", "marks": 20 }
+      ]
+    }
+  ]
+}
+
+Guidelines:
+- Section A (20): Multiple choice, one-word, short responses.
+  Focus: study skills, workplace rights, ethics, freedom of expression, stress management, nation building, globalisation.
+- Section B (40): Case studies with extended responses.
+  Focus: lifestyle diseases, social factors, benefits of exercise, youth employability, recruitment trends, technology in job market.
+- Section C (40): Essays/extended paragraphs (choose 2 of 3).
+  Topics: stereotyping & ill health, entrepreneurship & unemployment, community responsibility for health & environment.
+- Total = 100 marks, 2.5 hours.
+`;
       }
 
       const result = await model.generateContent(prompt);
@@ -127,11 +262,29 @@ Return ONLY valid JSON:
         <h2 className={styles.heading}>Generated Exam Paper</h2>
         <div className={styles.badges}>
           <span className={styles.badge}>
-            {subject === "english" ? "English HL P1" : "Afrikaans FAL P1"}
+            {subject === "english"
+              ? "English HL P1"
+              : subject === "afrikaans"
+              ? "Afrikaans FAL P1"
+              : subject === "it-p2"
+              ? "Information Technology P2"
+              : subject === "history-p1"
+              ? "History P1"
+              : "Life Orientation P1"}
           </span>
           <span className={styles.badge}>Grade {grade}</span>
           <span className={styles.badge}>
-            Total: {content?.totalMarks || (subject === "english" ? 70 : 80)}{" "}
+            Total:{" "}
+            {content?.totalMarks ||
+              (subject === "english"
+                ? 70
+                : subject === "afrikaans"
+                ? 80
+                : subject === "it-p2"
+                ? 150
+                : subject === "history-p1"
+                ? 100
+                : 100)}{" "}
             marks
           </span>
         </div>
@@ -154,38 +307,17 @@ Return ONLY valid JSON:
         <div className={styles.resultsBox}>
           {content.sections?.map((section: any, si: number) => (
             <div key={si} className={styles.card}>
-              <h3>{section.title}</h3>
+              <h3>
+                {section.title}{" "}
+                {section.marks ? `(${section.marks} marks)` : ""}
+              </h3>
               {section.instructions && <p>{section.instructions}</p>}
-
-              {section.texts?.map((t: any, ti: number) => (
-                <blockquote key={ti}>
-                  <strong>{t.title}</strong>
-                  <p>{t.content}</p>
-                </blockquote>
-              ))}
-
-              {section.text && <blockquote>{section.text}</blockquote>}
 
               {section.questions?.map((q: any, qi: number) => (
                 <p key={qi}>
                   {qi + 1}. {q.question || "⚠️ Missing question text"} (
                   {q.marks})
                 </p>
-              ))}
-
-              {section.subsections?.map((sub: any, subi: number) => (
-                <div key={subi}>
-                  <h4>
-                    {sub.title} ({sub.marks})
-                  </h4>
-                  <p>{sub.text}</p>
-                  {sub.questions?.map((q: any, qi: number) => (
-                    <p key={qi}>
-                      {qi + 1}. {q.question || "⚠️ Missing question text"} (
-                      {q.marks})
-                    </p>
-                  ))}
-                </div>
               ))}
             </div>
           ))}
