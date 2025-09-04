@@ -5,6 +5,7 @@ import NotesCard from "../components/Notes/NotesCard";
 import StatsCard from "../components/Notes/StatsCard";
 import ContributorsCard from "../components/Notes/ContributorsCard";
 import styles from "./notes.module.css";
+import { baseURL } from "../config";
 
 export default function NotesPage() {
   const [resources, setResources] = useState<any[]>([]);
@@ -19,7 +20,7 @@ export default function NotesPage() {
       if (query) params.append("search", query);
       if (sorted) params.append("sort", "upvotes");
 
-      const res = await fetch(`http://localhost:3000/resources?${params.toString()}`);
+      const res = await fetch(`${baseURL}/resources?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch resources");
       const data = await res.json();
       setResources(data);
@@ -67,7 +68,9 @@ export default function NotesPage() {
               title={resource.title}
               type={resource.type}
               subject={resource.subject}
-              grade={resource.grade_level ? `Grade ${resource.grade_level}` : "N/A"}
+              grade={
+                resource.grade_level ? `Grade ${resource.grade_level}` : "N/A"
+              }
               author={resource.users?.username || "Unknown"}
               description={resource.description}
               downloads={resource.downloads}
@@ -88,7 +91,6 @@ export default function NotesPage() {
     </div>
   );
 }
-
 
 /*import { useEffect, useState } from "react";
 import NotesHeader from "../components/Notes/NotesHeader";
@@ -158,8 +160,6 @@ export default function NotesPage() {
     </div>
   );
 }*/
-
-
 
 /*import NotesHeader from "../components/Notes/NotesHeader";
 import NotesSearchBar from "../components/Notes/NotesSearchBar";
