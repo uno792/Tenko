@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styles from "./tutorMarketplace.module.css";
 import TutorFilters from "../components/Tutors/TutorFilters";
 import TutorCard from "../components/Tutors/TutorCard";
+import Loader from "../components/Loader/Loader";
 
 // ✅ NEW: import the modal
 import TutorProfileModal from "../components/Tutors/TutorProfileModal";
@@ -78,7 +79,7 @@ export default function TutorMarketplace() {
     sortByRating ? (b.avg_rating || 0) - (a.avg_rating || 0) : 0
   );
 
-  if (loading) return <p>Loading tutors...</p>;
+  if (loading) return <Loader />;
 
   return (
     <div className={styles.container}>
