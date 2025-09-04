@@ -47,3 +47,29 @@
   background: #f5e9ed;
   font-weight: bold;
 }
+/* Disabled state for nav items when user is not logged in */
+.disabled {
+  color: #b9b9b9 !important;
+  background: transparent !important;
+  border-color: #e2e2e2 !important;
+  cursor: not-allowed;
+  pointer-events: none; /* not clickable */
+  opacity: 0.7;
+}
+
+/* Dim icons inside disabled links */
+.disabled svg {
+  opacity: 0.6;
+}
+
+/* Prevent hover styling on disabled */
+.disabled:hover {
+  background: transparent;
+}
+
+/* Keep active look only for enabled, current route */
+.active .link {
+  border: 2px solid #800020;
+  background: #f5e9ed;
+  font-weight: bold;
+}
