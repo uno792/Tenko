@@ -5,8 +5,26 @@ import BecomeTutorForm from "../components/Profile/BecomeTutorForm";
 import { useUser } from "../Users/UserContext";
 import { useNavigate } from "react-router-dom";
 import EditTutorForm from "../components/Profile/EditTutorForm";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+/* ============================
+   Helper: Format Phone Numbers
+============================ */
+function formatPhone(phone: string | null) {
+  if (!phone) return "—";
+
+  // Parse without forcing ZA (South Africa)
+  const parsed = parsePhoneNumberFromString(phone);
+
+  if (parsed) {
+    return parsed.formatInternational(); // e.g. +1 202 555 0147
+  }
+
+  // Fallback: ensure it has a +
+  return phone.startsWith("+") ? phone : `+${phone}`;
+}
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -154,7 +172,7 @@ export default function ProfilePage() {
             <p>
               <strong>Phone Number</strong>
               <br />
-              {profile.phone || "—"}
+              {formatPhone(profile.phone)}
             </p>
           </div>
           <div className={styles.info}>

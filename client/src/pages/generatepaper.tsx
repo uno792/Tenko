@@ -6,8 +6,10 @@ import styles from "./generatepaper.module.css";
 export default function GeneratePaperPage() {
   const [step, setStep] = useState(1);
 
-  // Allow both English and Afrikaans
-  const [subject, setSubject] = useState<"english" | "afrikaans">("english");
+  // Allow English, Afrikaans, IT P2, History P1, Life Orientation P1
+  const [subject, setSubject] = useState<
+    "english" | "afrikaans" | "it-p2" | "history-p1" | "lo-p1"
+  >("english");
   const [grade, setGrade] = useState("12");
   const [customText, setCustomText] = useState("");
 
@@ -18,7 +20,7 @@ export default function GeneratePaperPage() {
           subject={subject}
           grade={grade}
           customText={customText}
-          setSubject={setSubject} // ✅ pass setter
+          setSubject={setSubject}
           setGrade={setGrade}
           setCustomText={setCustomText}
           onNext={() => setStep(2)}

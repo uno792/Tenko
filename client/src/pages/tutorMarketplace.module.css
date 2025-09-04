@@ -174,3 +174,10 @@
 .viewButton:hover {
   background: #ddd;
 }
+
+.avatar img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 50%;
+}
