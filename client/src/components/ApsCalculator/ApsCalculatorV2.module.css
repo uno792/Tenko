@@ -110,15 +110,16 @@
 /* ===== Buttons ===== */
 /* Keep Save maroon ALWAYS, regardless of hover or focus. Use !important to beat any global button styles. */
 .primary {
-  background: #7b0f22 !important;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.1s;
+  background:#7b0f22 !important;
+  color:#fff !important;   /* 👈 add !important to beat global overrides */
+  border:none;
+  border-radius:12px;
+  padding:10px 16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .1s;
 }
+
 .primary:hover {
   transform: translateY(-1px);
   color: #fff;
@@ -129,12 +130,13 @@
 }
 
 .primary:disabled {
-  background: #7b0f22 !important; /* stay maroon even when disabled */
-  color: #fff;
-  opacity: 0.55; /* subtle fade to indicate disabled */
-  cursor: not-allowed;
-  transform: none;
+  background:#7b0f22 !important;
+  color:#fff !important;   /* stays white even when disabled */
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
 }
+
 
 /* Secondary action */
 .secondary {
