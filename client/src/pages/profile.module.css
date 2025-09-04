@@ -1,8 +1,8 @@
 .container {
   padding: 2rem;
-  min-height: 100vh;       /* ✅ Fill screen vertically */
-  width: 100%;             /* ✅ Full width inside Layout */
-  background: #f9f9f9;     /* ✅ Match other pages */
+  min-height: 100vh;
+  width: 100%;
+  background: #f9f9f9;
 }
 
 .header {
@@ -10,6 +10,24 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
+}
+.avatar img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.avatar {
+  width: 155px;
+  height: 155px;
+  border-radius: 50%;
+  background: #800000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .title {
@@ -34,6 +52,30 @@
   cursor: pointer;
 }
 
+.picButton {
+  position: relative; /* allows offset */
+  left: -30px; /* moves left by 5px */
+  top: 130px; /* moves down by 3px */
+
+  /* other existing styles */
+  background: #800000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+
+  width: 80px;
+  height: 30px;
+  font-size: 10px;
+  line-height: 7px;
+  padding: 0;
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .editButton:hover {
   background: #a00000;
 }
@@ -44,7 +86,7 @@
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  width: 100%;             /* ✅ Ensure cards expand full width */
+  width: 100%; /* ✅ Ensure cards expand full width */
 }
 
 .sectionTitle {
@@ -59,19 +101,6 @@
   grid-template-columns: 100px 1fr 1fr;
   gap: 1.5rem;
   align-items: flex-start;
-}
-
-.avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #800000;
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .info {

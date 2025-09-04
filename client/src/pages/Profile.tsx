@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import styles from "./profile.module.css";
 import EditProfileForm from "../components/Profile/EditProfileForm";
 import BecomeTutorForm from "../components/Profile/BecomeTutorForm";
-import { useUser } from "../Users/UserContext"; // ✅ import context
+import { useUser } from "../Users/UserContext";
 import { useNavigate } from "react-router-dom";
 import EditTutorForm from "../components/Profile/EditTutorForm";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL; // ✅ use env var
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ProfilePage() {
-  const { user } = useUser(); // ✅ get logged-in user
+  const { user } = useUser();
   const userId = user?.id;
 
   const [isEditing, setIsEditing] = useState(false);
@@ -19,16 +19,14 @@ export default function ProfilePage() {
   const navigate = useNavigate();
 
   /* ============================
-     Fetch Profile (Reusable)
+     Fetch Profile
   ============================ */
   const fetchProfile = async () => {
     if (!userId) return;
     try {
-      console.log("➡️ Fetching profile for", userId);
       const res = await fetch(`${API_BASE}/profile/${userId}`);
       if (!res.ok) throw new Error("Failed to fetch profile");
       const data = await res.json();
-      console.log("✅ Profile data loaded:", data);
       setProfile(data);
       setIsTutor(!!data.tutor);
     } catch (err) {
@@ -42,7 +40,6 @@ export default function ProfilePage() {
     }
   }, [userId, navigate]);
 
-  // Fetch on page load and when user changes
   useEffect(() => {
     fetchProfile();
   }, [userId]);
@@ -53,8 +50,6 @@ export default function ProfilePage() {
   const handleSaveProfile = async (updatedData: any) => {
     if (!userId) return;
     try {
-      console.log("➡️ Updating profile...", updatedData);
-
       const res = await fetch(`${API_BASE}/profile/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -63,7 +58,6 @@ export default function ProfilePage() {
 
       if (!res.ok) throw new Error("Failed to update profile");
 
-      console.log("✅ Profile updated, refetching...");
       await fetchProfile();
       setIsEditing(false);
     } catch (err) {
@@ -72,77 +66,27 @@ export default function ProfilePage() {
   };
 
   /* ============================
-     Become Tutor
+     Upload Profile Pic
   ============================ */
-  const handleBecomeTutor = async (tutorData: any) => {
-    if (!userId) return;
-    try {
-      console.log("➡️ Preparing tutor data...", tutorData);
+  const handleUploadPic = (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
 
-      const payload = {
-        user_id: userId,
-        subjects: tutorData.subjects,
-        bio: tutorData.bio,
-        rate_per_hour: tutorData.rate_per_hour,
-        availability: tutorData.availability,
-        grade_levels: tutorData.gradeLevels, // ✅ map camelCase → snake_case
-      };
-
-      console.log("➡️ Submitting tutor payload to backend:", payload);
-
-      const res = await fetch(`${API_BASE}/tutor`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to create tutor profile");
-
-      const data = await res.json();
-      console.log("✅ Tutor profile created:", data);
-
-      await fetchProfile();
-      setShowTutorForm(false);
-    } catch (err) {
-      console.error("❌ Tutor creation failed:", err);
-    }
-  };
-
-  /* ============================
-     Edit Tutor
-  ============================ */
-  const handleEditTutor = async (tutorData: any) => {
-    if (!userId) return;
-    try {
-      console.log("➡️ Updating tutor data...", tutorData);
-
-      const payload = {
-        user_id: userId,
-        subjects: tutorData.subjects,
-        bio: tutorData.bio,
-        rate_per_hour: tutorData.rate_per_hour,
-        availability: tutorData.availability,
-        grade_levels: tutorData.gradeLevels,
-      };
-
-      console.log("➡️ Sending updated tutor payload:", payload);
-
-      const res = await fetch(`${API_BASE}/tutor/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to update tutor profile");
-
-      const data = await res.json();
-      console.log("✅ Tutor profile updated:", data);
-
-      await fetchProfile();
-      setShowTutorForm(false);
-    } catch (err) {
-      console.error("❌ Tutor update failed:", err);
-    }
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = (reader.result as string).split(",")[1];
+      try {
+        await fetch(`${API_BASE}/profile/${userId}/profilepic`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profilepic: base64String }),
+        });
+        await fetchProfile();
+      } catch (err) {
+        console.error("❌ Upload failed:", err);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   if (!userId) return <p>Please log in to view your profile.</p>;
@@ -170,9 +114,37 @@ export default function ProfilePage() {
         <h2 className={styles.sectionTitle}>Personal Information</h2>
         <div className={styles.personalGrid}>
           <div className={styles.avatar}>
-            {profile.username?.charAt(0)}
-            {profile.username?.split(" ")[1]?.charAt(0)}
+            {profile.profilepic ? (
+              <img
+                src={`data:image/png;base64,${profile.profilepic}`}
+                alt="Profile"
+              />
+            ) : (
+              <>
+                {profile.username?.charAt(0)}
+                {profile.username?.split(" ")[1]?.charAt(0)}
+              </>
+            )}
           </div>
+
+          <div>
+            <input
+              type="file"
+              id="profilePicUpload"
+              style={{ display: "none" }}
+              accept="image/*"
+              onChange={handleUploadPic}
+            />
+            <button
+              className={styles.picButton}
+              onClick={() =>
+                document.getElementById("profilePicUpload")?.click()
+              }
+            >
+              Edit Profile Pic
+            </button>
+          </div>
+
           <div className={styles.info}>
             <p>
               <strong>Full Name</strong>
@@ -248,9 +220,7 @@ export default function ProfilePage() {
             </div>
             <button
               className={styles.editButton}
-              onClick={() => {
-                setShowTutorForm(true);
-              }}
+              onClick={() => setShowTutorForm(true)}
             >
               Edit Tutor Details
             </button>
@@ -283,7 +253,7 @@ export default function ProfilePage() {
       {showTutorForm && (
         <EditTutorForm
           tutor={profile.tutor}
-          onSubmit={handleEditTutor}
+          onSubmit={() => {}}
           onCancel={() => setShowTutorForm(false)}
         />
       )}

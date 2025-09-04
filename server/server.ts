@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 const router = express.Router();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(router);
 
 app.get("/api", (req: Request, res: Response) => {
@@ -1354,6 +1354,48 @@ router.put("/tutor/:userId", async (req, res) => {
   }
 
   return res.status(200).json(data[0]);
+});
+// routes/profile.js
+
+// Update profile picture
+router.put("/profile/:userId/profilepic", async (req, res) => {
+  const { userId } = req.params;
+  const { profilepic } = req.body; // base64 string
+
+  if (!profilepic) {
+    return res.status(400).json({ error: "profilepic (base64) is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .update({ profilepic })
+    .eq("user_id", userId)
+    .select("user_id, profilepic");
+
+  if (error) {
+    console.error("❌ Supabase error:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(200).json(data[0]);
+});
+
+// Fetch profile picture only
+router.get("/profile/:userId/profilepic", async (req, res) => {
+  const { userId } = req.params;
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("profilepic")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    console.error("❌ Supabase error:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(200).json(data);
 });
 
 export default router;
