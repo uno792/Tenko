@@ -1,4 +1,18 @@
 import styles from "../../pages/tutorMarketplace.module.css";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+
+// ✅ Helper to format phone numbers
+function formatPhone(phone: string | null | undefined) {
+  if (!phone) return "—";
+
+  const parsed = parsePhoneNumberFromString(phone);
+  if (parsed) {
+    return parsed.formatInternational(); // e.g. +27 79 424 7635
+  }
+
+  // fallback: just add + if missing
+  return phone.startsWith("+") ? phone : `+${phone}`;
+}
 
 interface TutorCardProps {
   tutor: {
@@ -52,7 +66,7 @@ export default function TutorCard({ tutor, onViewProfile }: TutorCardProps) {
           ⭐ {tutor.avg_rating || "No rating"}
         </p>
         <p className={styles.cardContact}>
-          {tutor.users?.email} • {tutor.users?.phone}
+          {tutor.users?.email} • {formatPhone(tutor.users?.phone)}
         </p>
         <p className={styles.cardRate}>R {tutor.rate_per_hour}/hour</p>
         <p className={styles.cardBio}>{tutor.bio}</p>
