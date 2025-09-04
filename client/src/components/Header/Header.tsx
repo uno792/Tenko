@@ -11,7 +11,7 @@ const Header: React.FC = () => {
         <img src={logo} alt="Tenko Logo" className={styles.logo} />
       </div>
       <div className={styles.right}>
-        <div className={styles.iconWrapper}>
+        {/* <div className={styles.iconWrapper}>
           <Bell className={styles.icon} />
           <span className={styles.notificationBadge}>2</span>
         </div>
@@ -23,7 +23,7 @@ const Header: React.FC = () => {
         </Link>
         <Link to="/signup">
           <button>SignUp</button>
-        </Link>
+        </Link> */}
       </div>
     </header>
   );

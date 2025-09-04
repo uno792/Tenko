@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./EventList.module.css";
 import EventCard from "./EventCard";
+import Loader from "../Loader/Loader";
 import {
   type EventItem,
   fetchEvents,
@@ -56,7 +57,7 @@ const EventList: React.FC<Props> = ({ userId, mode, selectedTags }) => {
     };
   }, [userId, mode, selectedTags]);
 
-  if (loading) return <div className={styles.loading}>Loading events…</div>;
+  if (loading) return <Loader />;
   if (items.length === 0)
     return (
       <div className={styles.empty}>No events match your filters yet.</div>

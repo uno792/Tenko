@@ -6,6 +6,7 @@ import { useUser } from "../Users/UserContext";
 import { useNavigate } from "react-router-dom";
 import EditTutorForm from "../components/Profile/EditTutorForm";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import Loader from "../components/Loader/Loader";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -108,7 +109,7 @@ export default function ProfilePage() {
   };
 
   if (!userId) return <p>Please log in to view your profile.</p>;
-  if (!profile) return <p>Loading...</p>;
+  if (!profile) return <Loader />;
 
   return (
     <div className={styles.container}>
