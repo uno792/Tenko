@@ -23,13 +23,14 @@
 }
 
 .logoBox {
-  background: #8b1c32;
-  color: white;
-  font-weight: bold;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  margin: 0 auto 1.5rem;
-  width: fit-content;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo {
+  width: 90px; /* adjust size as needed */
+  height: auto;
 }
 
 .title {

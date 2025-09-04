@@ -15,18 +15,11 @@ export default function AIToolsGrid() {
       action: () => navigate("/practice"),
     },
     {
-      title: "Mini Course Builder",
+      title: "Generate Exam Paper",
       description:
-        "Builds short, personalized courses on any topic, broken into lessons, exercises, and summaries",
-      icon: "📚",
-      action: () => alert("Mini Course Builder coming soon!"),
-    },
-    {
-      title: "NSC Matric Study Tool",
-      description:
-        "Subject-based assistant aligned with the South African National Senior Certificate curriculum",
-      icon: "📖",
-      action: () => alert("NSC Matric Study Tool coming soon!"),
+        "Automatically creates exam papers with a variety of questions, difficulty levels, and marking guidelines",
+      icon: "📄",
+      action: () => navigate("/generate"),
     },
   ];
 

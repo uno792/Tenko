@@ -69,7 +69,10 @@ export default function GeneratePastPaperModal({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select value={institution} onChange={(e) => setInstitution(e.target.value)}>
+          <select
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
+          >
             <option value="">All institutions</option>
             <option>University of Cape Town</option>
             <option>Stellenbosch University</option>

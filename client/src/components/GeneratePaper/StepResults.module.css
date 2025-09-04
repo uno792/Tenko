@@ -1,0 +1,180 @@
+/* Wrapper with maroon background */
+.wrapper {
+  background: #800020;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Header row */
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.heading {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: #fff;
+  color: #800020;
+  border: 1px solid rgba(128, 0, 32, 0.25);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.primaryBtn {
+  background: #800020;
+  border: none;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.08s;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: #a52a3a;
+}
+
+.primaryBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.primaryBtn:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background: #ffffff;
+  color: #800020;
+  border: 1px solid rgba(128, 0, 32, 0.25);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.08s;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: #faf6f7;
+}
+
+.secondaryBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading & error */
+.loadingBox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px dashed rgba(128, 0, 32, 0.25);
+  color: #4a0e0e;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-top: 0.75rem;
+}
+
+.errorBox {
+  background: #fff3f5;
+  border: 1px solid rgba(128, 0, 32, 0.25);
+  color: #6b1111;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  margin-top: 0.75rem;
+}
+
+/* Paper layout */
+.resultsBox {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Section styling */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(128, 0, 32, 0.15);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 6px 12px rgba(128, 0, 32, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #800020;
+  margin: 0 0 0.5rem;
+}
+
+.card h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: #333;
+}
+
+/* Text passages */
+blockquote {
+  background: #faf6f7;
+  border-left: 4px solid #800020;
+  margin: 0.5rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-style: italic;
+  color: #2e2e2e;
+}
+
+/* Questions */
+.card p {
+  margin: 0.3rem 0;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.card p strong {
+  color: #800020;
+}
+
+/* Subsections */
+.card > div {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(128, 0, 32, 0.2);
+}

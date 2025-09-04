@@ -1,0 +1,61 @@
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: #800020;
+}
+
+.subheading {
+  color: #444;
+  margin: 0 0 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #333;
+}
+
+.select,
+.textarea {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 0, 32, 0.2);
+  font-size: 1rem;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.nextButton {
+  align-self: flex-end;
+  background: #800020;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nextButton:hover {
+  background: #a52a3a;
+}
