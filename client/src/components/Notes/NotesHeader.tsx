@@ -1,11 +1,12 @@
 import { useState } from "react";
 import UploadModal from "./UploadModal";
-import GeneratePastPaperModal from "./GeneratePastPaperModal";
 import styles from "./NotesHeader.module.css";
 import { baseURL } from "../../config";
+import { useNavigate } from "react-router-dom"; // ✅ React Router
+
 export default function NotesHeader() {
   const [isUploadOpen, setUploadOpen] = useState(false);
-  const [isGenerateOpen, setGenerateOpen] = useState(false);
+  const navigate = useNavigate();
 
   // ✅ Actually send uploads to backend
   const handleUpload = async (formData: FormData) => {
@@ -33,16 +34,6 @@ export default function NotesHeader() {
     }
   };
 
-  const handleGenerate = (selected: any, difficulty: string) => {
-    console.log(
-      "Generating Past Paper with:",
-      selected,
-      "Difficulty:",
-      difficulty
-    );
-    // TODO: hook up Gemini API here later
-  };
-
   return (
     <div className={styles.header}>
       <div>
@@ -58,7 +49,7 @@ export default function NotesHeader() {
         </button>
         <button
           className={styles.generateBtn}
-          onClick={() => setGenerateOpen(true)}
+          onClick={() => navigate("/generate")}
         >
           🧩 Generate Past Paper
         </button>
@@ -68,32 +59,6 @@ export default function NotesHeader() {
         isOpen={isUploadOpen}
         onClose={() => setUploadOpen(false)}
         onSubmit={handleUpload}
-      />
-
-      <GeneratePastPaperModal
-        isOpen={isGenerateOpen}
-        onClose={() => setGenerateOpen(false)}
-        resources={[
-          {
-            id: 1,
-            title: "Mathematics Final Exam 2023",
-            subject: "Mathematics",
-            grade: "Grade 12",
-            institution: "University of Cape Town",
-            description: "Covers calculus, algebra, and statistics",
-            type: "Past Paper",
-          },
-          {
-            id: 2,
-            title: "Physics Midterm 2023",
-            subject: "Physics",
-            grade: "Grade 12",
-            institution: "Stellenbosch University",
-            description: "Mechanics, thermodynamics, electromagnetism",
-            type: "Exam Paper",
-          },
-        ]}
-        onGenerate={handleGenerate}
       />
     </div>
   );

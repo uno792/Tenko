@@ -12,6 +12,7 @@ import EventPage from "./pages/EventsPage";
 import LoginPage from "./components/LoginPageComp/LoginPage";
 import SignUpPage from "./components/SignupPageComp/SignUpPage";
 import ProfilePage from "./pages/Profile";
+import GeneratePaperPage from "./pages/generatepaper";
 
 import CalendarPage from "./components/CalendarPageComp/CalendarPage";
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/generate" element={<GeneratePaperPage />} />
             </Route>
           </Routes>
         </Router>
