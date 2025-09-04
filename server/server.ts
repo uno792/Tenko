@@ -1506,4 +1506,259 @@ router.get("/profile/:userId/profilepic", async (req, res) => {
   return res.status(200).json(data);
 });
 
+// --- Calendar types & helpers ---
+type CalendarEventDTO = {
+  id: string;
+  title: string;
+  date: string;                   // YYYY-MM-DD (anchor date)
+  endDate?: string | null;        // for multi-day events
+  source: "application" | "event" | "deadline";
+  source_id: number | string;
+  meta?: Record<string, any>;
+};
+
+// Safe date-only normalizer (no timezone drift)
+function toISODateOnly(d: string | Date | null | undefined): string | null {
+  if (!d) return null;
+
+  if (typeof d === "string") {
+    // Already a date-only string?
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return null;
+    return dt.toISOString().slice(0, 10);
+  }
+
+  const dt = d as Date;
+  if (isNaN(dt.getTime())) return null;
+  return dt.toISOString().slice(0, 10);
+}
+
+function monthRange(year: number, month0: number) {
+  const start = new Date(Date.UTC(year, month0, 1)).toISOString().slice(0, 10);
+  const end = new Date(Date.UTC(year, month0 + 1, 0)).toISOString().slice(0, 10);
+  return { start, end };
+}
+
+function inRange(iso: string | null, startISO?: string, endISO?: string) {
+  if (!iso) return false;
+  if (!startISO || !endISO) return true;
+  return iso >= startISO && iso <= endISO;
+}
+
+// Does an event window [start,end] overlap the month window [startISO,endISO]?
+function overlapsMonth(
+  start: string | null,
+  end: string | null,
+  startISO?: string,
+  endISO?: string
+) {
+  if (!startISO || !endISO) return !!(start || end);
+  const s = (start ?? end)!;
+  const e = (end ?? start)!;
+  return s <= endISO && e >= startISO;
+}
+
+
+/**
+ * GET /calendar
+ * Returns a unified list of events:
+ * - your applications' deadlines (applications.deadline or programs.application_close)
+ * - your saved/applied event signups (events.start_date/end_date)
+ * - your personal/manual items from 'deadlines'
+ */
+// =========================
+// Calendar: unified events
+// GET /calendar?user_id=...&month=YYYY-MM
+// =========================
+router.get("/calendar", async (req, res) => {
+  try {
+    const user_id = (req.query.user_id as string | undefined)?.trim();
+    const month = (req.query.month as string | undefined)?.trim(); // "YYYY-MM"
+    if (!user_id) return res.status(400).json({ error: "user_id is required" });
+
+    let startISO: string | undefined;
+    let endISO: string | undefined;
+    if (month && /^\d{4}-\d{2}$/.test(month)) {
+      const [y, m] = month.split("-").map((x) => parseInt(x, 10));
+      const r = monthRange(y, m - 1);
+      startISO = r.start;
+      endISO = r.end;
+    }
+
+    // 1) Applications (joined to program + university)
+    const { data: apps, error: appsErr } = await supabase
+      .from("applications")
+      .select(`
+        id, user_id, program_id, status, deadline,
+        programs:program_id (
+          id, name, application_close,
+          universities:university_id ( id, name, abbreviation )
+        )
+      `)
+      .eq("user_id", user_id);
+    if (appsErr) throw appsErr;
+
+    const appEvents: CalendarEventDTO[] = (apps ?? [])
+      .map((row: any): CalendarEventDTO => {
+        const programName = row?.programs?.name ?? "Program";
+        const uniAbbr =
+          row?.programs?.universities?.abbreviation ??
+          row?.programs?.universities?.name ??
+          "University";
+        const d =
+          toISODateOnly(row?.deadline) ||
+          toISODateOnly(row?.programs?.application_close);
+
+        return {
+          id: `application:${row.id}`,
+          title: `Application deadline — ${programName} (${uniAbbr})`,
+          date: d || "",
+          source: "application" as const,
+          source_id: row.id as number,
+          meta: {
+            status: row?.status ?? "planning",
+            program_id: row?.program_id,
+            university: row?.programs?.universities ?? null,
+          },
+        };
+      })
+      .filter((e) => !!e.date && inRange(e.date, startISO, endISO));
+
+    // 2) Event signups (joined to events)
+    const { data: signups, error: evErr } = await supabase
+      .from("event_signups")
+      .select(`
+        id, status, registered_at,
+        events:event_id ( id, title, type, start_date, end_date, location, link )
+      `)
+      .eq("user_id", user_id);
+    if (evErr) throw evErr;
+
+    const eventEvents: CalendarEventDTO[] = (signups ?? [])
+      .map((row: any): CalendarEventDTO | null => {
+        const s = toISODateOnly(row?.events?.start_date);
+        const e = toISODateOnly(row?.events?.end_date);
+        const anchor = e || s; // show by deadline if available
+        if (!anchor) return null;
+
+        return {
+          id: `event:${row?.events?.id ?? row.id}`,
+          title: row?.events?.title ?? "Event",
+          date: anchor,                 // anchor on end_date (deadline) when present
+          endDate: e ?? null,
+          source: "event" as const,
+          source_id: (row?.events?.id ?? row.id) as number,
+          meta: {
+            signup_status: row?.status,
+            type: row?.events?.type ?? null,
+            location: row?.events?.location ?? null,
+            link: row?.events?.link ?? null,
+            start_date: s,
+            end_date: e,
+          },
+        };
+      })
+      .filter((e): e is CalendarEventDTO => {
+        if (!e) return false;
+        const s = (e.meta?.start_date as string | null) ?? e.date;
+        const ed = (e.meta?.end_date as string | null) ?? e.date;
+        return overlapsMonth(s, ed, startISO, endISO);
+      });
+
+    // 3) Personal deadlines
+    const { data: deadlines, error: dlErr } = await supabase
+      .from("deadlines")
+      .select("id, title, description, due_date, type, external_id")
+      .eq("user_id", user_id);
+    if (dlErr) throw dlErr;
+
+    const dlEvents: CalendarEventDTO[] = (deadlines ?? [])
+      .map((row: any): CalendarEventDTO => {
+        const date = toISODateOnly(row?.due_date);
+        let label = row?.title ?? "Reminder";
+        if (row?.type === "application_deadline") label = `Application — ${label}`;
+        if (row?.type === "event") label = `Event — ${label}`;
+
+        return {
+          id: `deadline:${row.id}`,
+          title: label,
+          date: date || "",
+          source: "deadline" as const,
+          source_id: row.id as number,
+          meta: {
+            type: row?.type ?? "personal",
+            external_id: row?.external_id ?? null,
+            description: row?.description ?? null,
+          },
+        };
+      })
+      .filter((e) => !!e.date && inRange(e.date, startISO, endISO));
+
+    // Combine + sort
+    const all = [...appEvents, ...eventEvents, ...dlEvents].sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
+
+    res.status(200).json(all);
+  } catch (err: any) {
+    console.error("❌ GET /calendar error:", err.message);
+    res.status(500).json({ error: "Failed to load calendar" });
+  }
+});
+
+router.post("/calendar/event", async (req, res) => {
+  try {
+    const { user_id, title, date, description } = req.body as {
+      user_id?: string;
+      title?: string;
+      date?: string; // YYYY-MM-DD
+      description?: string;
+    };
+
+    if (!user_id || !title || !date) {
+      return res.status(400).json({ error: "user_id, title and date are required" });
+    }
+
+    const due_date = toISODateOnly(date);
+    if (!due_date) {
+      return res.status(400).json({ error: "date must be valid YYYY-MM-DD" });
+    }
+
+    const { data, error } = await supabase
+      .from("deadlines")
+      .insert({
+        user_id,
+        title,
+        description: description ?? null,
+        due_date,                 // 'YYYY-MM-DD' string is fine for a DATE column
+        type: "personal",
+        external_id: null,
+      })
+      .select("id,title,description,due_date,type,external_id")
+      .single();
+
+    if (error) throw error;
+
+    // Return in the same shape the calendar GET uses
+    const event = {
+      id: `deadline:${data.id}`,
+      title: data.title,
+      date: toISODateOnly(data.due_date)!,   // keep as 'YYYY-MM-DD'
+      source: "deadline" as const,
+      source_id: data.id,
+      meta: {
+        type: data.type,
+        description: data.description ?? null,
+        external_id: data.external_id ?? null,
+      },
+    };
+
+    return res.status(201).json(event);
+  } catch (err: any) {
+    console.error("❌ POST /calendar/event error:", err.message);
+    return res.status(500).json({ error: "Failed to add event" });
+  }
+});
+
 export default router;

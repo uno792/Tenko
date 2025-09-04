@@ -167,3 +167,48 @@ export async function getRecommendations(user_id: string, university_id: number)
   if (!res.ok) throw new Error("Failed to load recommendations");
   return (await res.json()) as ProgramRecommendation[];
 }
+
+// --- Add near your other exported types ---
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  date: string;                 // YYYY-MM-DD
+  endDate?: string | null;
+  source: "application" | "event" | "deadline";
+  source_id: number | string;
+  meta?: Record<string, any>;
+};
+
+// --- Add at bottom with the other API calls ---
+
+/** Load unified calendar events. Optional month filter: "YYYY-MM" */
+export async function getCalendar(
+  user_id: string,
+  month?: string,
+  opts?: { signal?: AbortSignal }
+): Promise<CalendarEvent[]> {
+  const url = new URL(`${API_BASE}/calendar`);
+  url.searchParams.set("user_id", user_id);
+  if (month) url.searchParams.set("month", month);
+
+  const res = await fetch(url.toString(), { signal: opts?.signal });
+  if (!res.ok) throw new Error(`Failed to load calendar: ${res.status}`);
+  return (await res.json()) as CalendarEvent[];
+}
+
+
+/** Add a personal calendar event (stored in 'deadlines') */
+export async function addCalendarEvent(params: {
+  user_id: string;
+  title: string;
+  date: string;             // YYYY-MM-DD
+  description?: string;
+}): Promise<CalendarEvent> {
+  const res = await fetch(`${API_BASE}/calendar/event`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error("Failed to add event");
+  return (await res.json()) as CalendarEvent;
+}

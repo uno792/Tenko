@@ -1,6 +1,6 @@
 .card {
   border: 2px solid #d9a5a5;
-  background: white;
+  background: #fff;
   border-radius: 12px;
   padding: 1rem;
 }
@@ -17,29 +17,94 @@ ul {
   margin: 0;
 }
 
-li {
+/* one row = left label (flex) + right date (no-wrap) */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   margin-bottom: 0.6rem;
   font-size: 0.9rem;
+}
+
+/* left side */
+.labelWrap {
   display: flex;
-  align-items: center;
+  align-items: baseline;         /* keeps dot aligned with first line of text */
   gap: 0.5rem;
+  flex: 1 1 auto;                /* take remaining space */
+  min-width: 0;                  /* allow wrapping */
 }
 
-small {
-  display: block;
+.labelText {
+  overflow-wrap: anywhere;       /* long titles won’t overflow */
+}
+
+/* right side (date) */
+.date {
+  margin-left: auto;             /* push to the far right */
+  flex: 0 0 auto;
+  white-space: nowrap;           /* stay on one line */
   color: #888;
-  margin-left: 1.5rem;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.2;
 }
 
+/* the red dot */
 .dot {
   width: 8px;
   height: 8px;
   background: #d93025;
   border-radius: 50%;
   display: inline-block;
+  margin-top: 0.25rem;           /* looks better next to multi-line text */
 }
 
+/* optional: larger colored dots elsewhere */
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* one row: left (dot + text) … right (date) */
+li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  min-width: 0;                /* allow the left text to wrap inside */
+}
+
+/* the date on the right — keep on one line */
+small {
+  display: inline-block;       /* override previous block */
+  margin-left: auto;           /* push to far right */
+  white-space: nowrap;         /* never wrap */
+  color: #888;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  padding-left: 0.5rem;        /* a little space from the text */
+}
+
+/* red dot */
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #d93025;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin-top: 0.25rem;         /* aligns with first line of text */
+}
+
+/* optional bigger colored dots elsewhere */
 .colorDot {
   width: 12px;
   height: 12px;
