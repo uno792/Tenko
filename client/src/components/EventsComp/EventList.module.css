@@ -1,2 +1,9 @@
-.list { display: grid; gap: 14px; }
-.loading, .empty { color: #666; padding: 8px; }
+.list {
+  display: grid;
+  gap: 14px;
+}
+.loading,
+.empty {
+  color: #666;
+  padding: 8px;
+}

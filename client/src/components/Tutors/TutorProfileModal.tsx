@@ -162,19 +162,19 @@ export default function TutorProfileModal({
         {/* Tabs */}
         <div className={styles.tabs}>
           <button
-            className={activeTab === "about" ? styles.activeTab : ""}
+            className={activeTab === "about" ? styles.tabsbutton : ""}
             onClick={() => setActiveTab("about")}
           >
             About
           </button>
           <button
-            className={activeTab === "ratings" ? styles.activeTab : ""}
+            className={activeTab === "ratings" ? styles.tabsbutton : ""}
             onClick={() => setActiveTab("ratings")}
           >
             Ratings
           </button>
           <button
-            className={activeTab === "reviews" ? styles.activeTab : ""}
+            className={activeTab === "reviews" ? styles.tabsbutton : ""}
             onClick={() => setActiveTab("reviews")}
           >
             Reviews

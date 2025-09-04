@@ -36,7 +36,7 @@ export default function ApplicationCard({
   const showPrompt = app.status === "planning" && prompt;
 
   return (
-    <li className={styles.card}>
+    <div className={styles.card}>
       <div className={styles.main}>
         <div className={styles.head}>
           <h3 className={styles.name}>{app.program?.name ?? "Programme"}</h3>
@@ -99,6 +99,6 @@ export default function ApplicationCard({
           </>
         )}
       </div>
-    </li>
+    </div>
   );
 }

@@ -6,7 +6,6 @@ const actions = [
   { label: "AI Assistant", link: "/ai-assistant" },
   { label: "Upload Notes", link: "/notes" },
   { label: "Find Tutors", link: "/findtutor" },
-  { label: "Build CV", link: "/career" },
 ];
 
 export default function QuickActions() {

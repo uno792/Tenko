@@ -73,14 +73,6 @@ export default function TutorFilters({
           </select>
         </div>
       </div>
-
-      <div className={styles.tipBox}>
-        <strong>⭐ Pro Tip</strong>
-        <p>
-          Book multiple sessions with the same tutor for better rates and
-          consistency in your learning journey.
-        </p>
-      </div>
     </section>
   );
 }
