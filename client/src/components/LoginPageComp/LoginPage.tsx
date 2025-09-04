@@ -2,6 +2,7 @@ import React from "react";
 import GoogleLogInButton from "./Googleloginbutton";
 import styles from "./LoginPage.module.css";
 import { Link } from "react-router-dom";
+import logo from "../../assets/logo.png"; // adjust relative path
 
 const LoginPage: React.FC = () => {
   return (
@@ -12,7 +13,9 @@ const LoginPage: React.FC = () => {
       {/* Center Card */}
       <div className={styles.content}>
         {/* Logo */}
-        <div className={styles.logoBox}>LOGO</div>
+        <div className={styles.logoBox}>
+          <img src={logo} alt="Logo" className={styles.logo} />
+        </div>
 
         {/* Welcome */}
         <h1 className={styles.title}>Welcome Back</h1>
@@ -32,10 +35,7 @@ const LoginPage: React.FC = () => {
 
         {/* Signup */}
         <p className={styles.signupText}>
-          Dont have an account?{" "}
-          <Link to="/signup">
-            <a>SignUp here</a>
-          </Link>
+          Don’t have an account? <Link to="/signup">Sign up here</Link>
         </p>
       </div>
     </div>
