@@ -1,47 +1,109 @@
 .container {
-  margin-top: 2rem;
-  padding: 1rem;
+  border: 2px solid #d9a5a5;
   background: #fff;
-  border: 1px solid #ddd;
   border-radius: 12px;
+  padding: 1rem;
 }
 
 .heading {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #800000;
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.75rem 0;
+  color: #8b1c32;
+  font-size: 1.1rem;
+}
+
+.muted {
+  color: #777;
+  font-size: 0.92rem;
 }
 
 .list {
   list-style: none;
+  margin: 0 0 0.5rem 0;
   padding: 0;
-  margin: 0 0 0.75rem 0;
 }
 
 .item {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 0.25rem 0;
-  font-size: 0.95rem;
-  border-bottom: 1px solid #eee;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #f0d7d7;
 }
 
 .item:last-child {
   border-bottom: none;
 }
 
-.points {
-  font-weight: 600;
-  color: #800000;
+.left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
 }
 
-.link {
-  color: #800000;
+.rankBox {
+  background: #f4e6e6;
+  color: #8b1c32;
+  border: 1px solid #e0bcbc;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.45rem;
+  flex: 0 0 auto;
+}
+
+.name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  color: #888;
+  font-size: 0.82rem;
+  margin-left: 0.35rem;
+  white-space: nowrap;
+}
+
+.points {
+  color: #8b1c32;
+  font-weight: 700;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* link */
+.link {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: #8b1c32;
   text-decoration: none;
+  font-weight: 600;
 }
 
 .link:hover {
   text-decoration: underline;
+}
+
+/* skeleton loading */
+.skeleton .name,
+.skeleton .points {
+  display: inline-block;
+  min-width: 90px;
+  height: 0.9rem;
+  background: linear-gradient(90deg, #f6f1f1, #f1e4e4, #f6f1f1);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.2s infinite;
+}
+
+.skeleton .points {
+  min-width: 60px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
