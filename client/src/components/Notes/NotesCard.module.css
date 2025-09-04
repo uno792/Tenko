@@ -6,6 +6,7 @@
   padding: 1rem;
   margin-bottom: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 2px solid #f4e8e8;
 }
 
 .left {
