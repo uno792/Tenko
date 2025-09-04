@@ -3,7 +3,7 @@ import Home from "./pages/home";
 import { UserProvider } from "./Users/UserContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Layout } from "./Layout";
-import { FindTutor } from "./pages/findtutor";
+import TutorMartket from "./pages/TutorMarketplace";
 import PracticePage from "./pages/practice";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import NotesPage from "./pages/notes"; // <-- new import
@@ -22,7 +22,7 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/findtutor" element={<FindTutor />} />
+              <Route path="/findtutor" element={<TutorMartket />} />
               <Route path="/practice" element={<PracticePage />} />
               <Route path="/applications" element={<ApplicationsPage />} />
               <Route path="/ai-assistant" element={<AIAssistantPage />} />
