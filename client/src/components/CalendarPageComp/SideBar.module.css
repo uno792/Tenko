@@ -11,103 +11,88 @@
   font-size: 1rem;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-/* one row = left label (flex) + right date (no-wrap) */
-.row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.6rem;
+.loading,
+.empty {
+  color: #666;
   font-size: 0.9rem;
 }
 
-/* left side */
-.labelWrap {
-  display: flex;
-  align-items: baseline;         /* keeps dot aligned with first line of text */
-  gap: 0.5rem;
-  flex: 1 1 auto;                /* take remaining space */
-  min-width: 0;                  /* allow wrapping */
-}
-
-.labelText {
-  overflow-wrap: anywhere;       /* long titles won’t overflow */
-}
-
-/* right side (date) */
-.date {
-  margin-left: auto;             /* push to the far right */
-  flex: 0 0 auto;
-  white-space: nowrap;           /* stay on one line */
-  color: #888;
-  font-size: 0.82rem;
-  line-height: 1.2;
-}
-
-/* the red dot */
-.dot {
-  width: 8px;
-  height: 8px;
-  background: #d93025;
-  border-radius: 50%;
-  display: inline-block;
-  margin-top: 0.25rem;           /* looks better next to multi-line text */
-}
-
-/* optional: larger colored dots elsewhere */
-.colorDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-ul {
+/* list container */
+.list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
 /* one row: left (dot + text) … right (date) */
-li {
+.row {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 0.6rem;
   font-size: 0.9rem;
-  min-width: 0;                /* allow the left text to wrap inside */
+  min-width: 0; /* allow left to wrap instead of pushing out */
 }
 
-/* the date on the right — keep on one line */
-small {
-  display: inline-block;       /* override previous block */
-  margin-left: auto;           /* push to far right */
-  white-space: nowrap;         /* never wrap */
+/* left side: dot + text */
+.left {
+  display: flex;
+  align-items: baseline; /* align dot with first text line */
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* the title can wrap nicely */
+.labelText {
+  overflow-wrap: anywhere;
+}
+
+/* right side (date) — single line, right-aligned */
+.date {
+  margin-left: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
   color: #888;
   font-size: 0.82rem;
   line-height: 1.2;
-  padding-left: 0.5rem;        /* a little space from the text */
+  padding-left: 0.5rem;
 }
 
-/* red dot */
+/* colored status dot (color set inline) */
 .dot {
-  width: 8px;
-  height: 8px;
-  background: #d93025;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   display: inline-block;
   flex: 0 0 auto;
-  margin-top: 0.25rem;         /* aligns with first line of text */
+  margin-top: 0.25rem;
+}
+.purple { background: #6A1B9A; } /* University Deadlines */
+.blue   { background: #1E88E5; } /* Tutoring Sessions */
+.red    { background: #D93025; } /* Bursary Applications */
+.green  { background: #2E7D32; } /* Career Events */
+.orange { background: #F39C12; } /* Study Sessions */
+/* Legend list styles (for EventCategories) */
+.legend {
+  list-style: none;     /* remove default bullets */
+  margin: 0;
+  padding: 0;
 }
 
-/* optional bigger colored dots elsewhere */
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+/* Small colored dot used in the legend */
 .colorDot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   display: inline-block;
+  flex: 0 0 auto;
 }

@@ -1,7 +1,6 @@
 import React from "react";
 import CalendarView from "./CalendarView";
 import UpcomingDeadlines from "./UpcomingDeadlines";
-import QuickActions from "./QuickActionss";
 import EventCategories from "./EventCategories";
 import styles from "./CalendarPage.module.css";
 
@@ -23,7 +22,6 @@ const CalendarPage: React.FC = () => {
         {/* Sidebar */}
         <div className={styles.sidebar}>
           <UpcomingDeadlines />
-          <QuickActions />
           <EventCategories />
         </div>
       </div>

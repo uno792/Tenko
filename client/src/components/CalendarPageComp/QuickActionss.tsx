@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaCalculator, FaUserFriends } from "react-icons/fa";
+import { FaCalculator, FaUserFriends } from "react-icons/fa";
 import styles from "./SideBar.module.css";
 
 const QuickActions: React.FC = () => {
@@ -7,9 +7,6 @@ const QuickActions: React.FC = () => {
     <div className={styles.card}>
       <h3>Quick Actions</h3>
       <ul>
-        <li>
-          <FaPlus /> Add Event
-        </li>
         <li>
           <FaCalculator /> APS Calculator
         </li>

@@ -13,7 +13,8 @@ const EventCategories: React.FC = () => {
   return (
     <div className={styles.card}>
       <h3>Event Categories</h3>
-      <ul>
+      {/* 👇 use the legend class */}
+      <ul className={styles.legend}>
         {categories.map((c, i) => (
           <li key={i}>
             <span
