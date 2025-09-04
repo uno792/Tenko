@@ -151,7 +151,8 @@ router.get("/tutors", async (req, res) => {
           email,
           phone,
           institution,
-          grade_year
+          grade_year,
+          profilepic
         )
       `);
 
@@ -1608,8 +1609,8 @@ router.delete("/reviews/:id", async (req, res) => {
 type CalendarEventDTO = {
   id: string;
   title: string;
-  date: string;                   // YYYY-MM-DD (anchor date)
-  endDate?: string | null;        // for multi-day events
+  date: string; // YYYY-MM-DD (anchor date)
+  endDate?: string | null; // for multi-day events
   source: "application" | "event" | "deadline";
   source_id: number | string;
   meta?: Record<string, any>;
@@ -1634,7 +1635,9 @@ function toISODateOnly(d: string | Date | null | undefined): string | null {
 
 function monthRange(year: number, month0: number) {
   const start = new Date(Date.UTC(year, month0, 1)).toISOString().slice(0, 10);
-  const end = new Date(Date.UTC(year, month0 + 1, 0)).toISOString().slice(0, 10);
+  const end = new Date(Date.UTC(year, month0 + 1, 0))
+    .toISOString()
+    .slice(0, 10);
   return { start, end };
 }
 
@@ -1656,7 +1659,6 @@ function overlapsMonth(
   const e = (end ?? start)!;
   return s <= endISO && e >= startISO;
 }
-
 
 /**
  * GET /calendar
@@ -1687,13 +1689,15 @@ router.get("/calendar", async (req, res) => {
     // 1) Applications (joined to program + university)
     const { data: apps, error: appsErr } = await supabase
       .from("applications")
-      .select(`
+      .select(
+        `
         id, user_id, program_id, status, deadline,
         programs:program_id (
           id, name, application_close,
           universities:university_id ( id, name, abbreviation )
         )
-      `)
+      `
+      )
       .eq("user_id", user_id);
     if (appsErr) throw appsErr;
 
@@ -1726,10 +1730,12 @@ router.get("/calendar", async (req, res) => {
     // 2) Event signups (joined to events)
     const { data: signups, error: evErr } = await supabase
       .from("event_signups")
-      .select(`
+      .select(
+        `
         id, status, registered_at,
         events:event_id ( id, title, type, start_date, end_date, location, link )
-      `)
+      `
+      )
       .eq("user_id", user_id);
     if (evErr) throw evErr;
 
@@ -1743,7 +1749,7 @@ router.get("/calendar", async (req, res) => {
         return {
           id: `event:${row?.events?.id ?? row.id}`,
           title: row?.events?.title ?? "Event",
-          date: anchor,                 // anchor on end_date (deadline) when present
+          date: anchor, // anchor on end_date (deadline) when present
           endDate: e ?? null,
           source: "event" as const,
           source_id: (row?.events?.id ?? row.id) as number,
@@ -1775,7 +1781,8 @@ router.get("/calendar", async (req, res) => {
       .map((row: any): CalendarEventDTO => {
         const date = toISODateOnly(row?.due_date);
         let label = row?.title ?? "Reminder";
-        if (row?.type === "application_deadline") label = `Application — ${label}`;
+        if (row?.type === "application_deadline")
+          label = `Application — ${label}`;
         if (row?.type === "event") label = `Event — ${label}`;
 
         return {
@@ -1815,7 +1822,9 @@ router.post("/calendar/event", async (req, res) => {
     };
 
     if (!user_id || !title || !date) {
-      return res.status(400).json({ error: "user_id, title and date are required" });
+      return res
+        .status(400)
+        .json({ error: "user_id, title and date are required" });
     }
 
     const due_date = toISODateOnly(date);
@@ -1829,7 +1838,7 @@ router.post("/calendar/event", async (req, res) => {
         user_id,
         title,
         description: description ?? null,
-        due_date,                 // 'YYYY-MM-DD' string is fine for a DATE column
+        due_date, // 'YYYY-MM-DD' string is fine for a DATE column
         type: "personal",
         external_id: null,
       })
@@ -1842,7 +1851,7 @@ router.post("/calendar/event", async (req, res) => {
     const event = {
       id: `deadline:${data.id}`,
       title: data.title,
-      date: toISODateOnly(data.due_date)!,   // keep as 'YYYY-MM-DD'
+      date: toISODateOnly(data.due_date)!, // keep as 'YYYY-MM-DD'
       source: "deadline" as const,
       source_id: data.id,
       meta: {
