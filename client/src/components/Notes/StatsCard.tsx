@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import styles from "./StatsCard.module.css";
 import { baseURL } from "../../config";
+import { useUser } from "../../Users/UserContext"; // ✅ import user context
+
 export default function StatsCard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const { user } = useUser(); // ✅ get logged-in user
+  const currentUserId = user?.id;
+
   useEffect(() => {
     async function fetchStats() {
+      if (!currentUserId) return; // don’t fetch if no user logged in
       try {
         const res = await fetch(
-          `${baseURL}/resources/stats?user_id=test-user-123`
+          `${baseURL}/resources/stats?user_id=${currentUserId}`
         );
         if (!res.ok) throw new Error("Failed to fetch stats");
         const data = await res.json();
@@ -21,7 +27,7 @@ export default function StatsCard() {
       }
     }
     fetchStats();
-  }, []);
+  }, [currentUserId]); // ✅ re-run if user changes
 
   if (loading) return <div className={styles.card}>Loading stats...</div>;
   if (!stats) return <div className={styles.card}>No stats available.</div>;
