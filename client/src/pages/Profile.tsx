@@ -250,13 +250,35 @@ export default function ProfilePage() {
         />
       )}
 
-      {showTutorForm && (
-        <EditTutorForm
-          tutor={profile.tutor}
-          onSubmit={() => {}}
-          onCancel={() => setShowTutorForm(false)}
-        />
-      )}
+      {showTutorForm &&
+        (profile.tutor ? (
+          <EditTutorForm
+            tutor={profile.tutor}
+            onSubmit={async (updatedTutor: any) => {
+              await fetch(`${API_BASE}/tutor/${userId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedTutor),
+              });
+              await fetchProfile();
+              setShowTutorForm(false);
+            }}
+            onCancel={() => setShowTutorForm(false)}
+          />
+        ) : (
+          <BecomeTutorForm
+            onSubmit={async (newTutor: any) => {
+              await fetch(`${API_BASE}/tutor`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...newTutor, user_id: userId }),
+              });
+              await fetchProfile();
+              setShowTutorForm(false);
+            }}
+            onCancel={() => setShowTutorForm(false)}
+          />
+        ))}
     </div>
   );
 }
