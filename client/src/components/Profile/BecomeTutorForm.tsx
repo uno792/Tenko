@@ -7,7 +7,7 @@ export default function BecomeTutorForm({ onSubmit, onCancel }: any) {
     bio: "",
     rate: "",
     availability: "",
-    gradeLevels: "",
+    grade_levels: "", // ✅ use snake_case directly
   });
 
   const handleChange = (e: any) => {
@@ -16,31 +16,29 @@ export default function BecomeTutorForm({ onSubmit, onCancel }: any) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    // Validation: make sure all required tutor fields are filled
     if (
       !formData.subjects ||
       !formData.bio ||
       !formData.rate ||
       !formData.availability ||
-      !formData.gradeLevels
+      !formData.grade_levels
     ) {
       alert("All fields are required!");
       return;
     }
 
-    // Clean up subjects & grade levels into arrays
     const tutorData = {
       subjects: formData.subjects
         .split(",")
         .map((s) => s.trim())
-        .filter((s) => s !== ""), // ✅ array of subjects
+        .filter((s) => s !== ""),
       bio: formData.bio,
       rate_per_hour: parseFloat(formData.rate),
       availability: formData.availability,
-      gradeLevels: formData.gradeLevels
+      grade_levels: formData.grade_levels
         .split(",")
         .map((g) => g.trim())
-        .filter((g) => g !== ""), // ✅ array of grade/year levels
+        .filter((g) => g !== ""),
     };
 
     onSubmit(tutorData);
@@ -50,55 +48,58 @@ export default function BecomeTutorForm({ onSubmit, onCancel }: any) {
     <div className={styles.overlay}>
       <div className={styles.formCard}>
         <h2>Become a Tutor</h2>
-        <form onSubmit={handleSubmit}>
-          <label>Subjects (comma separated)</label>
-          <input
-            name="subjects"
-            value={formData.subjects}
-            onChange={handleChange}
-            required
-          />
 
-          <label>Tutor Bio</label>
-          <textarea
-            name="bio"
-            value={formData.bio}
-            onChange={handleChange}
-            required
-          />
+        <div className={styles.formBody}>
+          <form onSubmit={handleSubmit}>
+            <label>Subjects (comma separated)</label>
+            <input
+              name="subjects"
+              value={formData.subjects}
+              onChange={handleChange}
+              required
+            />
 
-          <label>Rate per Hour</label>
-          <input
-            name="rate"
-            type="number"
-            value={formData.rate}
-            onChange={handleChange}
-            required
-          />
+            <label>Tutor Bio</label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              required
+            />
 
-          <label>Availability</label>
-          <input
-            name="availability"
-            value={formData.availability}
-            onChange={handleChange}
-            required
-          />
+            <label>Rate per Hour</label>
+            <input
+              name="rate"
+              type="number"
+              value={formData.rate}
+              onChange={handleChange}
+              required
+            />
 
-          <label>Grade/Year Levels Taught (comma separated)</label>
-          <input
-            name="gradeLevels"
-            value={formData.gradeLevels}
-            onChange={handleChange}
-            required
-          />
+            <label>Availability</label>
+            <input
+              name="availability"
+              value={formData.availability}
+              onChange={handleChange}
+              required
+            />
 
-          <div className={styles.actions}>
-            <button type="submit">Submit</button>
-            <button type="button" onClick={onCancel}>
-              Cancel
-            </button>
-          </div>
-        </form>
+            <label>Grade/Year Levels Taught (comma separated)</label>
+            <input
+              name="grade_levels" // ✅ matches backend
+              value={formData.grade_levels}
+              onChange={handleChange}
+              required
+            />
+
+            <div className={styles.actions}>
+              <button type="submit">Submit</button>
+              <button type="button" onClick={onCancel}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
