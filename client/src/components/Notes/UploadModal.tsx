@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styles from "./UploadModal.module.css";
+import { useUser } from "../../Users/UserContext"; // 👈 get logged-in user
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -7,7 +8,11 @@ interface UploadModalProps {
   onSubmit: (formData: FormData) => void;
 }
 
-export default function UploadModal({ isOpen, onClose, onSubmit }: UploadModalProps) {
+export default function UploadModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: UploadModalProps) {
   const [title, setTitle] = useState("");
   const [type, setType] = useState("Notes");
   const [subject, setSubject] = useState("");
@@ -16,23 +21,30 @@ export default function UploadModal({ isOpen, onClose, onSubmit }: UploadModalPr
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
+  const { user } = useUser(); // 👈 from context
+  const currentUserId = user?.id; // will be Supabase UUID
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || !currentUserId) {
+      alert("You must be logged in and select a file to upload.");
+      return;
+    }
 
     const data = new FormData();
-    data.append("user_id", "test-user-123"); // 🔹 replace with real logged-in user later
+    data.append("user_id", currentUserId); // 👈 real Supabase user id
     data.append("title", title);
     data.append("type", type);
     data.append("subject", subject);
-    data.append("grade_level", gradeLevel); // 🔹 match backend
-    data.append("institution", institution); // 🔹 match backend
+    data.append("grade_level", gradeLevel);
+    data.append("institution", institution);
     data.append("description", description);
     data.append("file", file);
 
     onSubmit(data);
+    onClose();
   };
 
   return (
@@ -53,7 +65,11 @@ export default function UploadModal({ isOpen, onClose, onSubmit }: UploadModalPr
             </div>
             <div className={styles.field}>
               <label>Resource Type *</label>
-              <select value={type} onChange={(e) => setType(e.target.value)} required>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                required
+              >
                 <option>Notes</option>
                 <option>Past Paper</option>
                 <option>Exam Paper</option>
@@ -108,7 +124,9 @@ export default function UploadModal({ isOpen, onClose, onSubmit }: UploadModalPr
             <input
               type="file"
               accept=".pdf,.doc,.docx,.ppt,.pptx"
-              onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+              onChange={(e) =>
+                setFile(e.target.files ? e.target.files[0] : null)
+              }
               required
             />
           </div>
@@ -126,7 +144,6 @@ export default function UploadModal({ isOpen, onClose, onSubmit }: UploadModalPr
     </div>
   );
 }
-
 
 /*import { useState } from "react";
 import styles from "./UploadModal.module.css";

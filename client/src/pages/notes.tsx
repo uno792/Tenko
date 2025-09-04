@@ -6,12 +6,16 @@ import StatsCard from "../components/Notes/StatsCard";
 import ContributorsCard from "../components/Notes/ContributorsCard";
 import styles from "./notes.module.css";
 import { baseURL } from "../config";
+import { useUser } from "../Users/UserContext"; // 👈 import user context
 
 export default function NotesPage() {
   const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSorted, setIsSorted] = useState(false);
+
+  const { user } = useUser(); // 👈 get user from context
+  const currentUserId = user?.id || "";
 
   async function fetchResources(query = searchQuery, sorted = isSorted) {
     try {
@@ -72,6 +76,8 @@ export default function NotesPage() {
                 resource.grade_level ? `Grade ${resource.grade_level}` : "N/A"
               }
               author={resource.users?.username || "Unknown"}
+              authorId={resource.user_id} // 👈 pass author id
+              currentUserId={currentUserId} // 👈 pass logged-in user id
               description={resource.description}
               downloads={resource.downloads}
               upvotes={resource.upvotes}

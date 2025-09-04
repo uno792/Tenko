@@ -51,13 +51,16 @@ router.get("/tutors/:id/reviews", async (req, res) => {
     const tutorId = req.params.id;
     const { data, error } = await supabase
       .from("tutor_reviews")
-      .select(`
+      .select(
+        `
         id,
+         reviewer_id,
         rating,
         comment,
         created_at,
         reviewer:reviewer_id (username)
-      `)
+      `
+      )
       .eq("tutor_id", tutorId)
       .order("created_at", { ascending: false });
 
@@ -77,7 +80,9 @@ router.post("/tutors/:id/reviews", async (req, res) => {
     const { reviewer_id, rating, comment } = req.body;
 
     if (!reviewer_id || !rating) {
-      return res.status(400).json({ error: "Reviewer ID and rating are required" });
+      return res
+        .status(400)
+        .json({ error: "Reviewer ID and rating are required" });
     }
 
     const { data, error } = await supabase
@@ -101,7 +106,6 @@ router.post("/tutors/:id/reviews", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // getting names to display
 router.get("/names", async (req, res) => {
@@ -135,9 +139,7 @@ router.get("/checkID", async (req, res) => {
 // Get all tutors with user info + avg rating
 router.get("/tutors", async (req, res) => {
   try {
-    const { data: tutors, error } = await supabase
-      .from("tutors")
-      .select(`
+    const { data: tutors, error } = await supabase.from("tutors").select(`
         id,
         user_id,
         subjects,
@@ -179,7 +181,6 @@ router.get("/tutors", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 //adding user to the DB
 router.post("/addUser", async (req, res) => {
@@ -373,6 +374,7 @@ router.get("/resources", async (req: Request, res: Response) => {
   try {
     let query = supabase.from("resources").select(`
       id,
+      user_id,
       title,
       type,
       subject,
@@ -1504,6 +1506,102 @@ router.get("/profile/:userId/profilepic", async (req, res) => {
   }
 
   return res.status(200).json(data);
+});
+
+router.delete("/resources/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.body; // pass from frontend to validate ownership
+
+    // Fetch resource first
+    const { data: resource, error: fetchError } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !resource) {
+      return res.status(404).json({ error: "Resource not found" });
+    }
+
+    // Ownership check
+    if (resource.user_id !== user_id) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this resource" });
+    }
+
+    // Delete file from storage (if exists)
+    if (resource.file_url) {
+      // file_url looks like https://xxxx.supabase.co/storage/v1/object/public/resources_files/uploads/abc.pdf
+      const path = resource.file_url.split("/resources_files/")[1]; // get the relative path
+      if (path) {
+        const { error: storageError } = await supabase.storage
+          .from("resources_files")
+          .remove([path]);
+
+        if (storageError) {
+          console.error("❌ Storage delete error:", storageError.message);
+        }
+      }
+    }
+
+    // Delete row from DB
+    const { error: deleteError } = await supabase
+      .from("resources")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("❌ DB delete error:", deleteError.message);
+      return res.status(500).json({ error: "Failed to delete resource" });
+    }
+
+    return res.json({ message: "Resource deleted successfully" });
+  } catch (err: any) {
+    console.error("❌ DELETE /resources/:id error:", err.message);
+    return res.status(500).json({ error: "Unexpected server error" });
+  }
+});
+
+// ✅ Delete a review
+router.delete("/reviews/:id", async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const { user_id } = req.body; // sent from frontend
+
+    // First check that this review belongs to the user
+    const { data: review, error: fetchError } = await supabase
+      .from("tutor_reviews")
+      .select("id, reviewer_id")
+      .eq("id", reviewId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    if (review.reviewer_id !== user_id) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this review" });
+    }
+
+    // Delete the review
+    const { error: deleteError } = await supabase
+      .from("tutor_reviews")
+      .delete()
+      .eq("id", reviewId);
+
+    if (deleteError) throw deleteError;
+
+    return res.status(200).json({ message: "Review deleted successfully" });
+  } catch (err: any) {
+    console.error("❌ Delete review failed:", err.message);
+    res.status(500).json({ error: "Failed to delete review" });
+  }
 });
 
 // --- Calendar types & helpers ---
