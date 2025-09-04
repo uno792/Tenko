@@ -54,6 +54,7 @@ router.get("/tutors/:id/reviews", async (req, res) => {
       .select(
         `
         id,
+         reviewer_id,
         rating,
         comment,
         created_at,
@@ -1560,6 +1561,46 @@ router.delete("/resources/:id", async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error("❌ DELETE /resources/:id error:", err.message);
     return res.status(500).json({ error: "Unexpected server error" });
+  }
+});
+
+// ✅ Delete a review
+router.delete("/reviews/:id", async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const { user_id } = req.body; // sent from frontend
+
+    // First check that this review belongs to the user
+    const { data: review, error: fetchError } = await supabase
+      .from("tutor_reviews")
+      .select("id, reviewer_id")
+      .eq("id", reviewId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    if (review.reviewer_id !== user_id) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this review" });
+    }
+
+    // Delete the review
+    const { error: deleteError } = await supabase
+      .from("tutor_reviews")
+      .delete()
+      .eq("id", reviewId);
+
+    if (deleteError) throw deleteError;
+
+    return res.status(200).json({ message: "Review deleted successfully" });
+  } catch (err: any) {
+    console.error("❌ Delete review failed:", err.message);
+    res.status(500).json({ error: "Failed to delete review" });
   }
 });
 

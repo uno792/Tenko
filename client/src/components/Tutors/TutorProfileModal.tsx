@@ -12,15 +12,17 @@ interface TutorProfileModalProps {
   onReviewSubmitted?: (tutorId: number, newAvg: number) => void;
 }
 
-export default function TutorProfileModal({ 
-  isOpen, 
-  onClose, 
-  tutor, 
-  onReviewSubmitted 
+export default function TutorProfileModal({
+  isOpen,
+  onClose,
+  tutor,
+  onReviewSubmitted,
 }: TutorProfileModalProps) {
   const { user } = useUser(); // logged-in user
 
-  const [activeTab, setActiveTab] = useState<"about" | "ratings" | "reviews">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "ratings" | "reviews">(
+    "about"
+  );
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState("");
   const [reviews, setReviews] = useState<any[]>([]);
@@ -102,12 +104,36 @@ export default function TutorProfileModal({
     }
   };
 
+  // ✅ Delete review
+  async function handleDeleteReview(reviewId: number) {
+    try {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this review?"
+      );
+      if (!confirmed) return;
+
+      const res = await fetch(`${API_BASE}/reviews/${reviewId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user?.id }),
+      });
+
+      if (!res.ok) throw new Error("Failed to delete review");
+
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    } catch (err) {
+      console.error("❌ Delete review failed:", err);
+    }
+  }
+
   if (!isOpen || !tutor) return null;
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        <button className={styles.closeBtn} onClick={onClose}>✕</button>
+        <button className={styles.closeBtn} onClick={onClose}>
+          ✕
+        </button>
 
         {/* Header */}
         <div className={styles.header}>
@@ -121,7 +147,10 @@ export default function TutorProfileModal({
             </p>
             <p className={styles.rating}>
               {renderStars(Math.round(tutor?.avg_rating || 0))}
-              <span> {tutor?.avg_rating || 0} ({reviews.length} reviews)</span>
+              <span>
+                {" "}
+                {tutor?.avg_rating || 0} ({reviews.length} reviews)
+              </span>
             </p>
           </div>
           <div className={styles.rateBox}>
@@ -168,14 +197,18 @@ export default function TutorProfileModal({
               <h3>Subjects I Teach</h3>
               <div className={styles.badges}>
                 {tutor?.subjects?.map((s: string, i: number) => (
-                  <span key={i} className={styles.badge}>{s}</span>
+                  <span key={i} className={styles.badge}>
+                    {s}
+                  </span>
                 ))}
               </div>
 
               <h3>Grades I Teach</h3>
               <div className={styles.badges}>
                 {tutor?.grade_levels?.map((g: string, i: number) => (
-                  <span key={i} className={styles.badge}>{g}</span>
+                  <span key={i} className={styles.badge}>
+                    {g}
+                  </span>
                 ))}
               </div>
 
@@ -219,6 +252,15 @@ export default function TutorProfileModal({
                     </div>
                     {renderStars(r.rating)}
                     <p>{r.comment}</p>
+                    {/* ✅ Delete button for own reviews */}
+                    {user?.id === r.reviewer_id && (
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteReview(r.id)}
+                      >
+                        🗑 Delete
+                      </button>
+                    )}
                   </div>
                 ))
               )}
@@ -229,7 +271,6 @@ export default function TutorProfileModal({
     </div>
   );
 }
-
 
 /*import { useState, useEffect } from "react";
 import styles from "./tutorProfileModal.module.css";
@@ -443,7 +484,6 @@ export default function TutorProfileModal({ isOpen, onClose, tutor }: TutorProfi
     </div>
   );
 }*/
-
 
 /*import { useState, useEffect } from "react";
 import styles from "./tutorProfileModal.module.css";
