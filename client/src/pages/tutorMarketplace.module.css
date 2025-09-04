@@ -1,0 +1,171 @@
+.container {
+  padding: 2rem;
+  background: #f9f9f9;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #800000;
+}
+
+.subtitle {
+  color: #666;
+  margin-top: 0.25rem;
+  font-size: 1rem;
+}
+
+.filters {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+}
+
+.searchBar {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* 🔥 Updated to force Subject, Rating Range, and Price Range on one row */
+.filterGrid {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filterGrid > div {
+  flex: 1;
+  max-width: 220px; /* keeps them from stretching too wide */
+  display: flex;
+  flex-direction: column;
+}
+
+.filterGrid label {
+  font-weight: 600;
+  color: #800000;
+  margin-bottom: 0.3rem;
+}
+
+.filterGrid input,
+.filterGrid select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.tipBox {
+  background: #f3e9eb;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #4a1c1c;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sortButton {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  background: #eee;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 1.5rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #800000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.cardName {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.verified {
+  color: green;
+  font-size: 0.9rem;
+}
+
+.cardMeta {
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+.cardRating {
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+.cardContact {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.cardRate {
+  color: #800000;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.cardBio {
+  margin: 0.5rem 0 1rem;
+  color: #333;
+}
+
+.viewButton {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  background: #eee;
+  cursor: pointer;
+}
+
+.viewButton:hover {
+  background: #ddd;
+}
+
