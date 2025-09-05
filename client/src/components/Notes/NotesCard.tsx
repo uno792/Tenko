@@ -1,5 +1,6 @@
 import styles from "./NotesCard.module.css";
 import { baseURL } from "../../config";
+import { useEffect, useState } from "react";
 
 interface NotesCardProps {
   id: number;
@@ -32,13 +33,29 @@ export default function NotesCard({
   date,
   fileUrl,
 }: NotesCardProps) {
+  // track if user has already upvoted
+  const [hasUpvoted, setHasUpvoted] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`note-${id}-upvoted-${currentUserId}`);
+    if (stored) setHasUpvoted(true);
+  }, [id, currentUserId]);
+
   async function handleUpvote() {
+    if (hasUpvoted) {
+      alert("You already upvoted this note!");
+      return;
+    }
+
     try {
       const res = await fetch(`${baseURL}/resources/${id}/upvote`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Failed to upvote");
-      window.location.reload(); // quick & simple refresh
+
+      // mark as upvoted locally
+      localStorage.setItem(`note-${id}-upvoted-${currentUserId}`, "true");
+      setHasUpvoted(true); // update UI without reload
     } catch (err) {
       console.error("❌ Upvote failed:", err);
     }
@@ -66,17 +83,15 @@ export default function NotesCard({
       const res = await fetch(`${baseURL}/resources/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: currentUserId }), // 👈 send logged-in user id
+        body: JSON.stringify({ user_id: currentUserId }),
       });
       if (!res.ok) throw new Error("Failed to delete resource");
 
-      window.location.reload(); // refresh to remove deleted note
+      window.location.reload();
     } catch (err) {
       console.error("❌ Delete failed:", err);
     }
   }
-
-  console.log("Note debug:", { id, authorId, currentUserId });
 
   return (
     <div className={styles.card}>
@@ -103,14 +118,18 @@ export default function NotesCard({
           <p className={styles.description}>{description}</p>
           <div className={styles.stats}>
             <span>⬇ {downloads}</span>
-            <span>👍 {upvotes}</span>
+            <span>👍 {upvotes + (hasUpvoted ? 1 : 0)}</span>
             <span className={styles.date}>{date}</span>
           </div>
         </div>
       </div>
       <div className={styles.right}>
-        <button className={styles.upvote} onClick={handleUpvote}>
-          👍 Upvote
+        <button
+          className={styles.upvote}
+          onClick={handleUpvote}
+          disabled={hasUpvoted}
+        >
+          {hasUpvoted ? "👍 Upvoted" : "👍 Upvote"}
         </button>
         <button className={styles.download} onClick={handleDownload}>
           ⬇ Download
